@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load webpush_notifications %}
 {% load static %}
 
 {% block page-title %} Integrations {% endblock %}
@@ -26,7 +27,6 @@
   </div>
 
 </hgroup>
-
 
 <div class="container grid mt-4">
 
@@ -103,6 +103,14 @@
   </article>
 
 </div>
+
+
+
+<div class="container" style="display: flex; justify-items: center; margin-top: 4rem; flex-direction: column; max-width: fit-content;">
+  {% webpush_button %}
+  <small style="margin-top: 15px;" class="pico-color-slate-500">Click this button to receive push notifications on important events</small>
+</div>
+
 
 
 {% endblock %}

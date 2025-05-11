@@ -1,20 +1,24 @@
 {% load django_browser_reload %}
+{% load webpush_notifications %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'pico.jade.min.css' %}">
     <link rel="stylesheet" href="{% static 'pico.colors.min.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'styles.css' %}">
+        
+    {% webpush_header %}
 
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
-    <link rel="manifest" href="{% static 'site.webmanifest' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
 
     <script defer src="{% static 'alpinetextareagrow.js' %}"></script>
     <script defer src="{% static 'alpinejs3xx.js' %}"></script>
@@ -22,7 +26,6 @@
 </head>
 
 <body class="container-fluid">
-
 
     <div x-data="{ cookies: localStorage.getItem('cookies') || 'no'}" x-init="$watch('cookies', (val) => localStorage.setItem('cookies', val))">
 
@@ -34,8 +37,7 @@
         </div>
 
     </div>
-
-
+    
     <nav style="border-bottom: 1px solid #696868; padding-left: 1rem; padding-right: 1rem;">
         <ul>
             <li>

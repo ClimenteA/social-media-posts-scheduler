@@ -14,10 +14,15 @@ from .schedule_utils import (
     get_initial_month_placeholder,
     get_year_dates,
 )
+from webpush import send_user_notification
 
 
 @login_required
 def calendar(request):
+    payload = {"head": "Welcome!", "body": "Hello World"}
+
+    send_user_notification(user=request.user, payload=payload, ttl=1000)
+
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 

@@ -104,6 +104,17 @@ Shortcut make commands:
 - Update .env file with Client ID (LINKEDIN_CLIENT_ID) and Primary Client Secret (LINKEDIN_CLIENT_SECRET);
 
 
+## PWA and Push Notifications
+
+On the server you need to generate vapid keys with this command:
+
+```
+python manage.py webpush_generate_vapid_keypair
+```
+
+Then fill `.env` with the public and private key
+
+
 ## Screenshots
 
 Allow ImPosting to post on your behalf. Click on Authorize button. 

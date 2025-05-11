@@ -55,6 +55,15 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
+# Push notifications
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL"),
+}
+
+
 # INTERNAL_IPS = []
 
 
@@ -74,6 +83,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
+    "webpush",
 ]
 
 
