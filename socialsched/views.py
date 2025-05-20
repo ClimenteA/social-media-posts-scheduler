@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Min, Max
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
-from .instagram_image import make_instagram_image
+from .image_processor.instagram_image import make_instagram_image
 from .models import PostModel
 from .forms import PostForm
 from .schedule_utils import (
@@ -177,52 +177,11 @@ def schedule_form(request, isodate):
 
 
 @login_required
-def schedule_modify(request, post_id):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
-
-    today = timezone.now()
-    post = get_object_or_404(PostModel, id=post_id)
-    posts = PostModel.objects.filter(
-        account_id=social_uid, scheduled_on__date=post.scheduled_on
-    )
-    prev_date = post.scheduled_on - timedelta(days=1)
-    next_date = post.scheduled_on + timedelta(days=1)
-    show_form = today.date() <= post.scheduled_on.date()
-    form = PostForm(instance=post)
-    return render(
-        request,
-        "schedule.html",
-        context={
-            "show_form": show_form,
-            "posts": posts,
-            "post_form": form,
-            "post": post,
-            "year": post.scheduled_on.year,
-            "isodate": post.scheduled_on.date().isoformat(),
-            "current_date": post.scheduled_on.date(),
-            "modify_post_id": post_id,
-            "prev_date": prev_date,
-            "today": today.date().isoformat(),
-            "next_date": next_date,
-        },
-    )
-
-
-@login_required
 def schedule_save(request, isodate):
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
-    modify_post_id = None
-    if request.GET.get("modify_post_id") is not None:
-        modify_post_id = request.GET.get("modify_post_id")
-
-    if modify_post_id:
-        post = get_object_or_404(PostModel, id=modify_post_id, account_id=social_uid)
-        form = PostForm(request.POST, request.FILES, instance=post)
-    else:
-        form = PostForm(request.POST, request.FILES)
+    form = PostForm(request.POST, request.FILES)
 
     if not form.is_valid():
         scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
@@ -243,17 +202,17 @@ def schedule_save(request, isodate):
     try:
         post: PostModel = form.save(commit=False)
         post.account_id = social_uid
-        # post.save()
+        post.save()
 
-        # if (
-        #     post.media_file
-        #     and hasattr(post.media_file, "path")
-        #     and post.media_file.path
-        # ):
-        #     make_instagram_image(post.media_file.path, post.description)
-        # else:
-        #     post.media_file = make_instagram_image(None, post.description)
-
+        if (
+            post.media_file
+            and hasattr(post.media_file, "path")
+            and post.media_file.path
+        ):
+            make_instagram_image(post.media_file.path, post.description)
+        else:
+            post.media_file = make_instagram_image(None, post.description)
+            
         post.save()
 
         messages.add_message(

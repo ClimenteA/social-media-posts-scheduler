@@ -39,7 +39,7 @@
 
 <article class="article-form mt-2 container">
 
-    <form x-data="formData" x-on:submit="loading = true" action="{% url 'schedule_save' isodate=isodate %}?modify_post_id={{ modify_post_id }}"
+    <form x-data="formData" x-on:submit="loading = true" action="{% url 'schedule_save' isodate=isodate %}"
         method="POST" enctype="multipart/form-data">
 
         {% csrf_token %}
@@ -236,12 +236,7 @@
 
 
         <div style="display: flex; gap: 1rem; justify-content: end;">
-            {% if not modify_post_id %}
-            <a href="{% url 'schedule_modify' post_id=post.id %}" class="pico-color-green-500">
-                <i class="bi bi-pencil-square"></i> Modify
-            </a>
-            {% endif %}
-            <a href="{% url 'schedule_delete' post_id=post.id %}" class="pico-color-red-500">
+            <a href="{% url 'schedule_delete' post_id=post.id %}" class="pico-color-red-500" style="text-decoration: none;">
                 <i class="bi bi-trash"></i> Delete
             </a>
         </div>
