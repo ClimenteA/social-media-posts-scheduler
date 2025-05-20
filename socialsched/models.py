@@ -102,8 +102,6 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a Instagram post is {TextMaxLength.INSTAGRAM}"
                 )
-            if not self.media_file:
-                raise ValueError("On Instagram media file is required.")
 
         if self.post_on_facebook:
             fb_ok = IntegrationsModel.objects.filter(
