@@ -5,6 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from core.logger import log, send_notification
 from core.settings import MEDIA_ROOT
+from .pexels import get_relevant_image_for_text
 
 
 def resize_image_width(image_path: str, target_width: int = 1080):
@@ -22,8 +23,8 @@ def resize_image_width(image_path: str, target_width: int = 1080):
     return image_path
 
 
-def resize_image(image_path: str, target_width: int = 1080, target_height: int = 1350):
-    bgimg_path = Path(__file__).parent / "bg.jpg"
+def resize_image(image_path: str, image_bg: str = None, target_width: int = 1080, target_height: int = 1350):
+    bgimg_path = image_bg or Path(__file__).parent / "bg.jpg"
 
     # Open and convert both images to RGB
     img = Image.open(image_path).convert("RGB")
@@ -53,18 +54,22 @@ def resize_image(image_path: str, target_width: int = 1080, target_height: int =
     # Apply blur to the cropped background
     blurred_bg = cropped_bg.filter(ImageFilter.GaussianBlur(radius=10))
 
-    # Resize original image to fit with some margin
+    # Resize the main image to fit within the frame (object-fit: contain)
     img_aspect = img.width / img.height
-    if img_aspect > target_aspect:
-        new_img_width = int(target_width * 0.95)
-        new_img_height = int(new_img_width / img_aspect)
+    frame_aspect = target_width / target_height
+
+    if img_aspect > frame_aspect:
+        # Image is wider than frame — match width
+        new_img_width = target_width
+        new_img_height = int(target_width / img_aspect)
     else:
-        new_img_height = int(target_height * 0.95)
-        new_img_width = int(new_img_height * img_aspect)
+        # Image is taller than frame — match height
+        new_img_height = target_height
+        new_img_width = int(target_height * img_aspect)
 
     resized_img = img.resize((new_img_width, new_img_height), Image.LANCZOS)
 
-    # Paste resized original image centered on blurred background
+    # Center the resized image on the blurred background
     position_x = (target_width - new_img_width) // 2
     position_y = (target_height - new_img_height) // 2
     blurred_bg.paste(resized_img, (position_x, position_y))
@@ -155,12 +160,15 @@ def create_image(*, image_path: str = None, text: str = None):
 
     if text and not image_path:
         text_image_path = create_image_from_text(text)
-        resized_image_path = resize_image(text_image_path)
+        bg_image_path = get_relevant_image_for_text(text)
+        resized_image_path = resize_image(text_image_path, bg_image_path)
+        os.remove(bg_image_path)
         return resized_image_path
 
     if text and image_path:
+        text_image_path = None
+        bg_image_path = None
         try:
-            text_image_path = None
             text_image_path = create_image_from_text(text)
             resized_image_path = resize_image_width(image_path)
             concated_image_path = concat_image_vertically(
@@ -168,11 +176,14 @@ def create_image(*, image_path: str = None, text: str = None):
                 top_image_path=text_image_path,
                 bottom_image_path=resized_image_path,
             )
-            resized_image_path = resize_image(concated_image_path)
+            bg_image_path = get_relevant_image_for_text(text)
+            resized_image_path = resize_image(concated_image_path, bg_image_path)
             return resized_image_path
         finally:
             if text_image_path:
                 os.remove(text_image_path)
+            if bg_image_path:
+                os.remove(bg_image_path)
 
     raise Exception("Image, text or both must be provided!")
 

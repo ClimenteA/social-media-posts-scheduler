@@ -19,6 +19,8 @@ SECRET_KEY = os.getenv(
 )
 NOTIFICATION_API_KEY = os.getenv("NOTIFICATION_API_KEY")
 NOTIFICATION_API_URL = os.getenv("NOTIFICATION_API_URL")
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+
 APP_URL = os.getenv("APP_URL")
 BASE_REDIRECT_URL = APP_URL.replace("https://", "")
 
