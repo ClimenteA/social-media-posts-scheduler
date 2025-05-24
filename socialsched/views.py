@@ -204,16 +204,17 @@ def schedule_save(request, isodate):
         post.account_id = social_uid
         post.save()
 
-        if (
-            post.media_file
-            and hasattr(post.media_file, "path")
-            and post.media_file.path
-        ):
-            make_instagram_image(post.media_file.path, post.description)
-        else:
-            post.media_file = make_instagram_image(None, post.description)
-            
-        post.save()
+        if post.process_image:
+            if (
+                post.media_file
+                and hasattr(post.media_file, "path")
+                and post.media_file.path
+            ):
+                make_instagram_image(post.media_file.path, post.description)
+            else:
+                post.media_file = make_instagram_image(None, post.description)
+                
+            post.save()
 
         messages.add_message(
             request,

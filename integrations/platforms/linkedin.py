@@ -1,10 +1,11 @@
 import requests
 from core.logger import log, send_notification
 from dataclasses import dataclass
-from integrations.models import IntegrationsModel
+from integrations.models import IntegrationsModel, Platform
 from socialsched.models import PostModel
 from asgiref.sync import sync_to_async
 from .common import (
+    get_integration,
     ErrorAccessTokenNotProvided,
     ErrorUserIdNotProvided,
 )
@@ -52,7 +53,7 @@ class LinkedinPoster:
 
         upload_payload = {
             "registerUploadRequest": {
-                "recipes": [f"urn:li:digitalmediaRecipe:feedshare-image"],
+                "recipes": ["urn:li:digitalmediaRecipe:feedshare-image"],
                 "owner": f"urn:li:person:{self.user_id}",
                 "serviceRelationships": [
                     {
@@ -111,32 +112,42 @@ class LinkedinPoster:
 
 
 @sync_to_async
-def update_linkedin_link(post_id: int, post_url: str):
+def update_linkedin_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_linkedin = post_url
     post.post_on_linkedin = False
+    post.error_linkedin = None if err == "None" else err
     post.save(skip_validation=True)
 
 
 async def post_on_linkedin(
-    integration: IntegrationsModel,
+    account_id: int,
     post_id: int,
     post_text: str,
     media_path: str = None,
 ):
 
+    err = None
     post_url = None
 
-    try:
-        poster = LinkedinPoster(integration)
-        post_url = poster.make_post(post_text, media_path)
-        log.success(f"Linkedin post url: {integration.account_id} {post_url}")
-    except Exception as err:
-        log.error(f"Linkedin post error: {integration.account_id} {err}")
-        log.exception(err)
-        send_notification(
-            "ImPosting", f"AccountId: {integration.account_id} got error {str(err)}"
-        )
-        await sync_to_async(integration.delete)()
+    integration = await get_integration(
+        account_id, Platform.LINKEDIN.value
+    )
 
-    await update_linkedin_link(post_id, post_url)
+    if integration:
+        try:
+            poster = LinkedinPoster(integration)
+            post_url = poster.make_post(post_text, media_path)
+            log.success(f"Linkedin post url: {integration.account_id} {post_url}")
+        except Exception as e:
+            err = e
+            log.error(f"Linkedin post error: {integration.account_id} {err}")
+            log.exception(err)
+            send_notification(
+                "ImPosting", f"AccountId: {integration.account_id} got error {err}"
+            )
+            await sync_to_async(integration.delete)()
+    else:
+        err = "(Re-)Authorize Linkedin on Integrations page"
+
+    await update_linkedin_link(post_id, post_url, str(err))

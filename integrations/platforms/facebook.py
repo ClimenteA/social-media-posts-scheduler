@@ -3,9 +3,10 @@ import requests
 from core.logger import log, send_notification
 from asgiref.sync import sync_to_async
 from dataclasses import dataclass
-from integrations.models import IntegrationsModel
+from integrations.models import IntegrationsModel, Platform
 from socialsched.models import PostModel
 from .common import (
+    get_integration,
     ErrorAccessTokenNotProvided,
     ErrorPageIdNotProvided,
     ErrorThisTypeOfPostIsNotSupported,
@@ -83,32 +84,42 @@ class FacebookPoster:
 
 
 @sync_to_async
-def update_facebook_link(post_id: int, post_url: str):
+def update_facebook_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_facebook = post_url
     post.post_on_facebook = False
+    post.error_facebook = None if err == "None" else err
     post.save(skip_validation=True)
 
 
 async def post_on_facebook(
-    integration: IntegrationsModel,
+    account_id: int,
     post_id: int,
     post_text: str,
     media_url: str = None,
 ):
-
+    
+    err = None
     post_url = None
 
-    try:
-        poster = FacebookPoster(integration)
-        post_url = poster.make_post(post_text, media_url)
-        log.success(f"Facebook post url: {integration.account_id} {post_url}")
-    except Exception as err:
-        log.error(f"Facebook post error: {integration.account_id} {err}")
-        log.exception(err)
-        send_notification(
-            "ImPosting", f"AccountId: {integration.account_id} got error {str(err)}"
-        )
-        await sync_to_async(integration.delete)()
+    integration = await get_integration(
+        account_id, Platform.FACEBOOK.value
+    )
+    
+    if integration:
+        try:
+            poster = FacebookPoster(integration)
+            post_url = poster.make_post(post_text, media_url)
+            log.success(f"Facebook post url: {integration.account_id} {post_url}")
+        except Exception as e:
+            err = e
+            log.error(f"Facebook post error: {integration.account_id} {err}")
+            log.exception(err)
+            send_notification(
+                "ImPosting", f"AccountId: {integration.account_id} got error {err}"
+            )
+            await sync_to_async(integration.delete)()
+    else:
+        err = "(Re-)Authorize Facebook on Integrations page"
 
-    await update_facebook_link(post_id, post_url)
+    await update_facebook_link(post_id, post_url, str(err))

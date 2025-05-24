@@ -14,6 +14,7 @@ class PostForm(ModelForm):
             "scheduled_on",
             "media_file",
             "post_timezone",
+            "process_image",
         ]
 
         widgets = {
@@ -24,4 +25,5 @@ class PostForm(ModelForm):
             "post_on_instagram": CheckboxInput(),
             "post_on_facebook": CheckboxInput(),
             "post_on_linkedin": CheckboxInput(),
+            "process_image": CheckboxInput(attrs={"role":"switch"}),
         }

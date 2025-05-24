@@ -93,6 +93,14 @@
                     {{ post_form.post_on_linkedin.errors }}
                 </label>
 
+                <span>|</span>
+
+                <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Add text to image and add background blurred image, resize to 1080x1350px">
+                    <i class="bi bi-image-fill"></i>
+                    {{ post_form.process_image }}
+                    {{ post_form.process_image.errors }}
+                </label>
+
             </div>
             
         </div>
@@ -135,18 +143,16 @@
         </div>
 
         <label for="{{ post_form.media_file.id_for_label }}"">
-            Image (jpg, jpeg, png):
             {{ post_form.media_file }}
             {{ post_form.media_file.errors }}
         </label>
-
 
         <button type="submit" x-bind:disabled="loading">
             <i class="bi bi-save"></i>
             <span>Schedule post</span>
         </button>
 
-        <small x-show="loading" aria-busy="true">Processing post image...</small>
+        <small x-show="loading" aria-busy="true">Saving post...</small>
 
     </form>
 </article>
@@ -183,56 +189,85 @@
         </div>
         {% endif %}
 
-        {% if post.posted %}
         <div class="mt-1">
 
-            <p class="pico-color-slate-450">Posted links:</p>
+            <p class="pico-color-slate-450">Links:</p>
 
             <div style="display: flex; align-items: center; gap: 1rem; margin-top: -15px;">
+                
+                <!-- Posted platforms: -->
+
+                {% if post.post_on_instagram %}
+                <span data-tooltip="pending">
+                    <i class="bi bi-instagram"></i>
+                </span>
+                {% endif %}
+
+                {% if post.post_on_facebook %}
+                <span data-tooltip="pending">
+                    <i class="bi bi-facebook"></i>
+                </span>
+                {% endif %}
+
+                {% if post.post_on_x %}
+                <span data-tooltip="pending">
+                    <i class="bi bi-twitter-x"></i>
+                </span>
+                {% endif %}
+
+                {% if post.post_on_linkedin %}
+                <span data-tooltip="pending">
+                    <i class="bi bi-linkedin"></i>
+                </span>
+                {% endif %}
+
+                <!-- Posted links: -->
 
                 {% if post.link_instagram %}
-                <a target="_blank" href="{{ post.link_instagram }}"><i class="bi bi-instagram"></i></a>
+                <a data-tooltip="posted" target="_blank" href="{{ post.link_instagram }}"><i class="bi bi-instagram"></i></a>
                 {% endif %}
 
                 {% if post.link_facebook %}
-                <a target="_blank" href="{{ post.link_facebook }}"><i class="bi bi-facebook"></i></a>
+                <a data-tooltip="posted" target="_blank" href="{{ post.link_facebook }}"><i class="bi bi-facebook"></i></a>
                 {% endif %}
 
                 {% if post.link_x %}
-                <a target="_blank" href="{{ post.link_x }}"><i class="bi bi-twitter-x"></i></a>
+                <a data-tooltip="posted" target="_blank" href="{{ post.link_x }}"><i class="bi bi-twitter-x"></i></a>
                 {% endif %}
 
                 {% if post.link_linkedin %}
-                <a target="_blank" href="{{ post.link_linkedin }}"><i class="bi bi-linkedin"></i></a>
+                <a data-tooltip="posted" target="_blank" href="{{ post.link_linkedin }}"><i class="bi bi-linkedin"></i></a>
+                {% endif %}
+
+                <!-- Errors -->
+
+                {% if post.error_instagram %}
+                <span data-tooltip="not posted got error: {{ post.error_instagram }}" class="pico-color-red-500">
+                    <i class="bi bi-instagram"></i>
+                </span>
+                {% endif %}
+
+                {% if post.error_facebook %}
+                <span data-tooltip="not posted got error: {{post.error_facebook }}" class="pico-color-red-500">
+                    <i class="bi bi-facebook"></i>
+                </span>
+                {% endif %}
+
+                {% if post.error_x %}
+                <span data-tooltip="not posted got error: {{post.error_x }}" class="pico-color-red-500">
+                    <i class="bi bi-twitter-x"></i>
+                </span>
+                {% endif %}
+
+                {% if post.error_linkedin %}
+                <span data-tooltip="not posted got error: {{post.error_linkedin }}" class="pico-color-red-500">
+                    <i class="bi bi-linkedin"></i>
+                </a>
                 {% endif %}
 
             </div>
 
         </div>
-        {% else %}
-        <p class="pico-color-slate-450">Will be posted on:</p>
-
-        <div style="display: flex; align-items: center; gap: 1rem; margin-top: -15px;">
-
-            {% if post.post_on_instagram %}
-            <i class="bi bi-instagram"></i>
-            {% endif %}
-
-            {% if post.post_on_facebook %}
-            <i class="bi bi-facebook"></i>
-            {% endif %}
-
-            {% if post.post_on_x %}
-            <i class="bi bi-twitter-x"></i>
-            {% endif %}
-
-            {% if post.post_on_linkedin %}
-            <i class="bi bi-linkedin"></i>
-            {% endif %}
-
-        </div>
-
-        {% endif %}
 
 
         <div style="display: flex; gap: 1rem; justify-content: end;">

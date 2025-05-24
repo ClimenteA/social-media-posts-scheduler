@@ -8,8 +8,9 @@ from dataclasses import dataclass
 from asgiref.sync import sync_to_async
 from socialsched.models import PostModel
 from requests_oauthlib import OAuth2Session
-from integrations.models import IntegrationsModel
+from integrations.models import IntegrationsModel, Platform
 from .common import (
+    get_integration,
     ErrorAccessTokenNotProvided,
     ErrorThisTypeOfPostIsNotSupported,
 )
@@ -144,30 +145,42 @@ class XPoster:
 
 
 @sync_to_async
-def update_x_link(post_id: int, post_url: str):
+def update_x_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_x = post_url
-    post.post_on_x = False
+    post.post_on_x = False 
+    post.error_x = None if err == "None" else err
     post.save(skip_validation=True)
 
 
 async def post_on_x(
-    integration: IntegrationsModel,
+    account_id: int,
     post_id: int,
     post_text: str,
     media_path: str = None,
 ):
-    post_url = None
-    try:
-        poster = XPoster(integration)
-        post_url = poster.make_post(post_text, media_path)
-        log.success(f"X post url: {integration.account_id} {post_url}")
-    except Exception as err:
-        log.error(f"X post error: {integration.account_id} {err}")
-        log.exception(err)
-        send_notification(
-            "ImPosting", f"AccountId: {integration.account_id} got error {str(err)}"
-        )
-        await sync_to_async(integration.delete)()
 
-    await update_x_link(post_id, post_url)
+    err = None
+    post_url = None
+
+    integration = await get_integration(
+        account_id, Platform.X_TWITTER.value
+    )
+
+    if integration:
+        try:
+            poster = XPoster(integration)
+            post_url = poster.make_post(post_text, media_path)
+            log.success(f"X post url: {integration.account_id} {post_url}")
+        except Exception as e:
+            err = e
+            log.error(f"X post error: {integration.account_id} {err}")
+            log.exception(err)
+            send_notification(
+                "ImPosting", f"AccountId: {integration.account_id} got error {err}"
+            )
+            await sync_to_async(integration.delete)()
+    else:
+        err = "(Re-)Authorize X on Integrations page"
+
+    await update_x_link(post_id, post_url, str(err))

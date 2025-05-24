@@ -1,3 +1,14 @@
+from asgiref.sync import sync_to_async
+from integrations.models import IntegrationsModel
+
+
+@sync_to_async
+def get_integration(account_id, platform):
+    return IntegrationsModel.objects.filter(
+        account_id=account_id, platform=platform
+    ).first()
+
+
 class ErrorAccessTokenNotProvided(Exception):
     def __str__(self):
         return "Access token not found."

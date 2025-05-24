@@ -154,4 +154,4 @@ def refresh_tokens():
 
     except Exception as err:
         log.exception(err)
-        send_notification(f"ImPosting", "Could not refresh tokens because {err}")
+        send_notification("ImPosting", f"Could not refresh tokens because {err}")

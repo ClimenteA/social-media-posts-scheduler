@@ -33,17 +33,22 @@ class PostModel(models.Model):
         null=True,
         blank=True,
     )
+    process_image = models.BooleanField(blank=True, null=True, default=False)
+    
     post_on_x = models.BooleanField(blank=True, null=True, default=False)
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
     post_on_facebook = models.BooleanField(blank=True, null=True, default=False)
     post_on_linkedin = models.BooleanField(blank=True, null=True, default=False)
-
+    
     link_x = models.CharField(max_length=50000, blank=True, null=True)
     link_instagram = models.CharField(max_length=50000, blank=True, null=True)
     link_facebook = models.CharField(max_length=50000, blank=True, null=True)
     link_linkedin = models.CharField(max_length=50000, blank=True, null=True)
 
-    posted = models.BooleanField(blank=True, null=True, default=False)
+    error_x = models.CharField(max_length=50000, blank=True, null=True)
+    error_instagram = models.CharField(max_length=50000, blank=True, null=True)
+    error_facebook = models.CharField(max_length=50000, blank=True, null=True)
+    error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
 
     def save(self, *args, **kwargs):
 
@@ -51,6 +56,7 @@ class PostModel(models.Model):
 
         if skip_validation:
             super().save(*args, **kwargs)
+            return
 
         if not any(
             [
