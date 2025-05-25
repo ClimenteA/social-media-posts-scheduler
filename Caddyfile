@@ -1,5 +1,5 @@
 imposting.localhost {
-	reverse_proxy imposting-app:8000
+	reverse_proxy imposting-web:8000
 
     handle_path /static/* {
         root * /imposting/staticfiles

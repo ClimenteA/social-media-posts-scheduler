@@ -1,16 +1,23 @@
 services:
 
-  imposting-app:
-    container_name: imposting-app
+  imposting-web:
+    container_name: imposting-web
     build: .
     command: uv run waitress-serve --threads 6 --listen=*:8000 core.wsgi:application
     restart: unless-stopped
     tty: true
     volumes:
+      - ./core:/app/core
       - ./data:/app/data
+      - ./integrations:/app/integrations
       - ./logs:/app/logs
       - ./media:/app/media
+      - ./socialsched:/app/socialsched
+      - ./static:/app/static
       - ./staticfiles:/app/staticfiles
+      - ./templates:/app/templates
+      - ./manage.py:/app/manage.py
+      - ./entrypoint.sh:/app/entrypoint.sh
     ports:
       - "8000:8000"
     env_file:
@@ -18,17 +25,24 @@ services:
     networks:
       - web
 
-  imposting-poster:
-    container_name: imposting-poster
+  imposting-cron-poster:
+    container_name: imposting-cron-poster
     build: .
     command: python manage.py runposter
     restart: unless-stopped
     tty: true
     volumes:
+      - ./core:/app/core
       - ./data:/app/data
+      - ./integrations:/app/integrations
       - ./logs:/app/logs
       - ./media:/app/media
+      - ./socialsched:/app/socialsched
+      - ./static:/app/static
       - ./staticfiles:/app/staticfiles
+      - ./templates:/app/templates
+      - ./manage.py:/app/manage.py
+      - ./entrypoint.sh:/app/entrypoint.sh
     env_file:
       - .env
     networks:
