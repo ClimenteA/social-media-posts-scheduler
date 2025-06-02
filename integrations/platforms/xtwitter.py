@@ -1,4 +1,5 @@
 import os
+import uuid
 import time
 from typing import Literal
 import mimetypes
@@ -27,8 +28,13 @@ class XPoster:
         if not self.access_token:
             raise ErrorAccessTokenNotProvided
 
+        self.chunk_size: int = 5 * 1024 * 1024  # 5MB
         self.base_url = f"https://api.x.com/{self.api_version}/tweets"
         self.upload_url = f"https://api.x.com/{self.api_version}/media/upload"
+        self.upload_init_url = self.upload_url + "/initialize"
+        self.upload_append_url = lambda media_id: f"{self.upload_url}/{media_id}/append"
+        self.upload_finalize_url = lambda media_id: f"{self.upload_url}/{media_id}/finalize"
+
         self.client = OAuth2Session(
             client_id=settings.X_CLIENT_ID,
             token={"access_token": self.access_token, "token_type": "bearer"},
@@ -37,9 +43,9 @@ class XPoster:
     def _make_authenticated_request(
         self, method: Literal["post", "get"], url: str, **kwargs
     ):
-        response = getattr(self.client, method)(url, **kwargs)
-        response.raise_for_status()
-        return response
+            response = getattr(self.client, method)(url, **kwargs)
+            response.raise_for_status()
+            return response
 
     def _upload_media(self, media_path: str):
         total_bytes = os.path.getsize(media_path)
@@ -56,45 +62,44 @@ class XPoster:
         else:
             raise ErrorThisTypeOfPostIsNotSupported
 
-        init_response = self._make_authenticated_request(
+        # INIT (new style)
+        init_resp = self._make_authenticated_request(
             "post",
-            self.upload_url,
-            files={
-                "command": (None, "INIT"),
-                "media_type": (None, mime_type),
-                "total_bytes": (None, str(total_bytes)),
-                "media_category": (None, media_category),
+            self.upload_init_url,
+            json={
+                "media_type": mime_type,
+                "total_bytes": total_bytes,
+                "media_category": media_category,
+                "shared": True,
             },
+            headers={"Content-Type": "application/json"},
         )
-        media_id = init_response.json()["data"]["id"]
+        media_id = init_resp.json()["data"]["id"]
 
+        # APPEND (one chunk per call)
         with open(media_path, "rb") as f:
             for segment_index, chunk in enumerate(
                 iter(lambda: f.read(self.chunk_size), b"")
             ):
+                # Note: use multipart/form-data manually
+                files = {
+                    "segment_index": (None, str(segment_index)),
+                    "media": (f"{uuid.uuid4().hex}", chunk),
+                }
+
                 self._make_authenticated_request(
                     "post",
-                    self.upload_url,
-                    files={
-                        "command": (None, "APPEND"),
-                        "media_id": (None, media_id),
-                        "segment_index": (None, str(segment_index)),
-                        "media": ("media", chunk),
-                    },
+                    self.upload_append_url(media_id),
+                    files=files,
                 )
 
-        finalize_response = self._make_authenticated_request(
+        # FINALIZE
+        finalize_resp = self._make_authenticated_request(
             "post",
-            self.upload_url,
-            files={
-                "command": (None, "FINALIZE"),
-                "media_id": (None, media_id),
-            },
+            self.upload_finalize_url(media_id),
         )
 
-        processing_info = (
-            finalize_response.json().get("data", {}).get("processing_info")
-        )
+        processing_info = finalize_resp.json().get("data", {}).get("processing_info")
         if processing_info:
             self._wait_for_processing(media_id)
 
@@ -103,7 +108,9 @@ class XPoster:
     def _wait_for_processing(self, media_id):
         while True:
             response = self._make_authenticated_request(
-                "get", f"{self.upload_url}?command=STATUS&media_id={media_id}"
+                "get",
+                self.upload_url,
+                params={"command": "STATUS", "media_id": media_id},
             )
             info = response.json().get("data", {}).get("processing_info")
 
@@ -183,4 +190,4 @@ async def post_on_x(
     else:
         err = "(Re-)Authorize X on Integrations page"
 
-    await update_x_link(post_id, post_url, str(err))
+    await update_x_link(post_id, post_url, str(err)[0:50])

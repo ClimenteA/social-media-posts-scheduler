@@ -59,7 +59,7 @@ def post_scheduled_posts():
 
             # FACEBOOK
             if post.post_on_facebook:
-                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_url))
+                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_url, media_path))
 
             # INSTAGRAM
             if post.post_on_instagram:
