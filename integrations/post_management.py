@@ -5,7 +5,6 @@ from django.db.models import Q
 from django.utils import timezone
 from socialsched.models import PostModel
 from zoneinfo import ZoneInfo
-from .models import Platform
 from .platforms.linkedin import post_on_linkedin
 from .platforms.xtwitter import post_on_x
 from .platforms.facebook import post_on_facebook
