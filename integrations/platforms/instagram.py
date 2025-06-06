@@ -15,7 +15,7 @@ from .common import (
 @dataclass
 class InstagramPoster:
     integration: IntegrationsModel
-    api_version: str = "v22.0"
+    api_version: str = "v23.0"
 
     def __post_init__(self):
         self.access_token = self.integration.access_token_value
@@ -61,12 +61,40 @@ class InstagramPoster:
 
         return self.get_post_url(publish.json()["id"])
 
+    def post_text_with_video(self, text: str, video_url: str):
+        
+        params = {
+            "media_type": "REELS",
+            "video_url": video_url,
+            "caption": text,
+            "access_token": self.access_token,
+            "share_to_feed": True,
+        }
+
+        container = requests.post(self.media_url, params=params)
+        container.raise_for_status()
+
+        publish = requests.post(
+            self.media_publish_url,
+            headers={"Authorization": f"Bearer {self.access_token}"},
+            json={"creation_id": container.json()["id"]},
+        )
+        publish.raise_for_status()
+
+        return self.get_post_url(publish.json()["id"])
+
+
     def make_post(self, text: str, media_url: str = None):
         if media_url is None:
-            log.info("No media url for instagram post. Skip posting.")
+            log.info("No media for instagram post. Skip posting.")
             return
-        if media_url.endswith((".jpg", ".jpeg", ".png")):
-            return self.post_text_with_image(text, media_url)
+
+        if media_url:
+            if media_url.endswith((".jpg", ".jpeg", ".png")):
+                return self.post_text_with_image(text, media_url)
+
+            if media_url.endswith(".mp4"):
+                return self.post_text_with_video(text, media_url)
 
         raise ErrorThisTypeOfPostIsNotSupported
 
@@ -110,4 +138,4 @@ async def post_on_instagram(
     else:
         err = "(Re-)Authorize Instagram on Integrations page"
 
-    await update_instagram_link(post_id, post_url, str(err))
+    await update_instagram_link(post_id, post_url, str(err)[0:50])

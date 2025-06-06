@@ -95,7 +95,7 @@
 
                 <span>|</span>
 
-                <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Add text to image and add background blurred image, resize to 1080x1350px">
+                <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Process image">
                     <i class="bi bi-image-fill"></i>
                     {{ post_form.process_image }}
                     {{ post_form.process_image.errors }}
@@ -174,19 +174,45 @@
         </div>
 
         <p>{{ post.description }}</p>
-
+        
         {% if post.media_file %}
-        <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
-            <div x-show="!fullScreen">
-                <img @click="fullScreen = true" src="{{ post.media_file.url }}" alt="Media file"
-                    style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-            </div>
 
-            <dialog :open="fullScreen" @click="fullScreen = false">
-                <img src="{{ post.media_file.url }}" alt="Media file"
-                    style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-            </dialog>
-        </div>
+
+            {% if post.has_image %}
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                <div x-show="!fullScreen">
+                    <img @click="fullScreen = true" src="{{ post.media_file.url }}" alt="Media file"
+                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+                    <img src="{{ post.media_file.url }}" alt="Media file"
+                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                </dialog>
+            </div>
+            {% endif %}
+    
+            {% if post.has_video %}
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                <div x-show="!fullScreen">
+                    <video @click="fullScreen = true" controls
+                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        <source src="{{ post.media_file.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+                    <video controls autoplay
+                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        <source src="{{ post.media_file.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </dialog>
+            </div>
+            {% endif %}
+    
+
         {% endif %}
 
         <div class="mt-1">

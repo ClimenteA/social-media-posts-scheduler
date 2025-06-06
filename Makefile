@@ -4,6 +4,8 @@ dev:
 poster:
 	uv run python manage.py runposter
 
+tests:
+	uv run python manage.py test
 
 migrate-all:
 	uv run python manage.py makemigrations

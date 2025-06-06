@@ -50,6 +50,15 @@ class PostModel(models.Model):
     error_facebook = models.CharField(max_length=50000, blank=True, null=True)
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
 
+
+    @property
+    def has_video(self):
+        return self.media_file and self.media_file.path.lower().endswith('.mp4')
+    
+    @property
+    def has_image(self):
+        return self.media_file and self.media_file.path.lower().endswith((".jpeg", ".jpg", ".png"))
+    
     def save(self, *args, **kwargs):
 
         skip_validation = kwargs.pop("skip_validation", False)
@@ -78,9 +87,9 @@ class PostModel(models.Model):
 
         if self.media_file:
             ext = os.path.splitext(self.media_file.name)[1].lower()
-            if ext not in [".jpeg", ".jpg", ".png"]:
+            if ext not in [".jpeg", ".jpg", ".png", ".mp4"]:
                 raise ValueError(
-                    "Unsupported file type. Only JPEG, PNG images are allowed."
+                    "Unsupported file type. Only JPEG, PNG images and MP4 videos are allowed."
                 )
 
         postlen = len(self.description)
