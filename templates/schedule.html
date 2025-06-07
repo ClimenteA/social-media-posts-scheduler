@@ -81,6 +81,12 @@
                     {{ post_form.post_on_instagram.errors }}
                 </label>
 
+                <label for="{{ post_form.post_on_tiktok.id_for_label }}">
+                    <i class="bi bi-tiktok"></i>
+                    {{ post_form.post_on_tiktok }}
+                    {{ post_form.post_on_tiktok.errors }}
+                </label>
+
                 <label for="{{ post_form.post_on_x.id_for_label }}">
                     <i class="bi bi-twitter-x"></i>
                     {{ post_form.post_on_x }}
@@ -247,6 +253,14 @@
                 </span>
                 {% endif %}
 
+
+                {% if post.post_on_tiktok %}
+                <span data-tooltip="pending">
+                    <i class="bi bi-tiktok"></i>
+                </span>
+                {% endif %}
+
+
                 <!-- Posted links: -->
 
                 {% if post.link_instagram %}
@@ -265,29 +279,39 @@
                 <a data-tooltip="posted" target="_blank" href="{{ post.link_linkedin }}"><i class="bi bi-linkedin"></i></a>
                 {% endif %}
 
+                {% if post.link_tiktok %}
+                <a data-tooltip="posted" target="_blank" href="{{ post.link_tiktok }}"><i class="bi bi-tiktok"></i></a>
+                {% endif %}
+
                 <!-- Errors -->
 
                 {% if post.error_instagram %}
-                <span data-tooltip="not posted got error: {{ post.error_instagram }}" class="pico-color-red-500">
+                <span data-tooltip="Not posted got error: {{ post.error_instagram }}" class="pico-color-red-500">
                     <i class="bi bi-instagram"></i>
                 </span>
                 {% endif %}
 
                 {% if post.error_facebook %}
-                <span data-tooltip="not posted got error: {{post.error_facebook }}" class="pico-color-red-500">
+                <span data-tooltip="Not posted got error: {{post.error_facebook }}" class="pico-color-red-500">
                     <i class="bi bi-facebook"></i>
                 </span>
                 {% endif %}
 
                 {% if post.error_x %}
-                <span data-tooltip="not posted got error: {{post.error_x }}" class="pico-color-red-500">
+                <span data-tooltip="Not posted got error: {{post.error_x }}" class="pico-color-red-500">
                     <i class="bi bi-twitter-x"></i>
                 </span>
                 {% endif %}
 
                 {% if post.error_linkedin %}
-                <span data-tooltip="not posted got error: {{post.error_linkedin }}" class="pico-color-red-500">
+                <span data-tooltip="Not posted got error: {{post.error_linkedin }}" class="pico-color-red-500">
                     <i class="bi bi-linkedin"></i>
+                </a>
+                {% endif %}
+
+                {% if post.error_tiktok %}
+                <span data-tooltip="Not posted got error: {{post.error_tiktok }}" class="pico-color-red-500">
+                    <i class="bi bi-tiktok"></i>
                 </a>
                 {% endif %}
 

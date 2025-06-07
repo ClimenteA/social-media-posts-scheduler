@@ -104,6 +104,16 @@ Shortcut make commands:
 - Update .env file with Client ID (LINKEDIN_CLIENT_ID) and Primary Client Secret (LINKEDIN_CLIENT_SECRET);
 
 
+## TikTok
+
+- You'll need a business tiktok account to post via API;
+- Google [tiktok for developers](https://developers.tiktok.com/);
+- Create an app;
+- Add products Login Kit and Content Posting API
+- In Login Kit set the callback url: https://ngrok-or-prod-url.app/tiktok/callback/;
+- Add your tiktok account in Target Users for testing;
+
+
 ## Screenshots
 
 Allow ImPosting to post on your behalf. Click on Authorize button. 

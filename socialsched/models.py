@@ -39,16 +39,19 @@ class PostModel(models.Model):
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
     post_on_facebook = models.BooleanField(blank=True, null=True, default=False)
     post_on_linkedin = models.BooleanField(blank=True, null=True, default=False)
+    post_on_tiktok = models.BooleanField(blank=True, null=True, default=False)
     
     link_x = models.CharField(max_length=50000, blank=True, null=True)
     link_instagram = models.CharField(max_length=50000, blank=True, null=True)
     link_facebook = models.CharField(max_length=50000, blank=True, null=True)
     link_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    link_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
     error_x = models.CharField(max_length=50000, blank=True, null=True)
     error_instagram = models.CharField(max_length=50000, blank=True, null=True)
     error_facebook = models.CharField(max_length=50000, blank=True, null=True)
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    error_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
 
     @property
@@ -73,6 +76,7 @@ class PostModel(models.Model):
                 self.post_on_instagram,
                 self.post_on_facebook,
                 self.post_on_linkedin,
+                self.post_on_tiktok,
             ]
         ):
             raise ValueError("At least one platform must be selected for posting.")
@@ -143,7 +147,16 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a LinkedIn post is {TextMaxLength.LINKEDIN}"
                 )
-
+            
+        if self.post_on_tiktok:
+            ld_ok = IntegrationsModel.objects.filter(
+                account_id=self.account_id, platform=Platform.TIKTOK.value
+            ).first()
+            if not ld_ok:
+                raise ValueError(
+                    "Please got to Integrations and authorize TikTok app"
+                )
+        
         super().save(*args, **kwargs)
 
     class Meta:

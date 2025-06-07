@@ -1,9 +1,9 @@
 import uuid
 import requests
-from requests_oauthlib import OAuth2Session
 from core import settings
 from core.logger import log
-from datetime import timedelta
+from requests_oauthlib import OAuth2Session
+from urllib.parse import urlencode
 from django.utils import timezone
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -27,6 +27,11 @@ def integrations_form(request):
     ).first()
     x_ok = bool(x_integration)
 
+    tiktok_integration = IntegrationsModel.objects.filter(
+        account_id=social_uid, platform=Platform.TIKTOK.value
+    ).first()
+    tiktok_ok = bool(tiktok_integration)
+
     facebook_integration = IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.FACEBOOK.value
     ).first()
@@ -41,6 +46,11 @@ def integrations_form(request):
     if x_integration:
         if x_integration.access_expire:
             x_expire = x_integration.access_expire.date()
+
+    tiktok_expire = None
+    if tiktok_integration:
+        if tiktok_integration.access_expire:
+            tiktok_expire = tiktok_integration.access_expire.date()
 
     linkedin_expire = None
     if linkedin_integration:
@@ -60,9 +70,11 @@ def integrations_form(request):
             "linkedin_ok": linkedin_ok,
             "instagram_ok": facebook_ok,
             "meta_ok": facebook_ok and instagram_ok,
+            "tiktok_ok": tiktok_ok,
             "x_expire": x_expire,
             "linkedin_expire": linkedin_expire,
-            "meta_expire": facebook_expire
+            "meta_expire": facebook_expire,
+            "tiktok_expire": tiktok_expire,
         },
     )
 
@@ -106,7 +118,7 @@ def linkedin_callback(request):
 
     access_token = token_json["access_token"]
     access_token_expires_in = token_json["expires_in"]
-    access_token_expire = timezone.now() + timedelta(
+    access_token_expire = timezone.now() + timezone.timedelta(
         seconds=access_token_expires_in - 900
     )
 
@@ -204,7 +216,7 @@ def x_callback(request):
     user_info = oauth.get("https://api.x.com/2/users/me").json()
     user_id = user_info["data"]["id"]
 
-    access_expire = timezone.now() + timedelta(seconds=token["expires_in"] - 900)
+    access_expire = timezone.now() + timezone.timedelta(seconds=token["expires_in"] - 900)
 
     # Save X
     IntegrationsModel.objects.filter(
@@ -322,7 +334,7 @@ def facebook_callback(request):
     page = pages_data[0]
     page_id = page["id"]
     page_access_token = page["access_token"]
-    page_access_token_expire = timezone.now() + timedelta(days=60)
+    page_access_token_expire = timezone.now() + timezone.timedelta(days=60)
 
     # Retrieve Instagram accounts linked to the page
     response_instagram = requests.get(
@@ -386,6 +398,95 @@ def facebook_uninstall(request):
         request,
         messages.SUCCESS,
         "Deleted the access tokens.",
+        extra_tags="✅ Success!",
+    )
+
+    return redirect("/integrations/")
+
+
+@login_required
+def tiktok_login(request):
+    params = {
+        "client_key": settings.TIKTOK_CLIENT_ID,
+        "response_type": "code",
+        "scope": "user.info.basic,video.publish",
+        "redirect_uri": settings.TIKTOK_REDIRECT_URI,
+        "state": str(request.user.pk),
+    }
+    tiktok_login_url = f"https://www.tiktok.com/v2/auth/authorize/?{urlencode(params)}"
+    return redirect(tiktok_login_url)
+
+
+@login_required
+def tiktok_callback(request):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
+
+    code = request.GET.get("code")
+    error = request.GET.get("error")
+
+    if error:
+        messages.error(request, "TikTok authorization failed.")
+        return redirect("/integrations/")
+
+    # Exchange authorization code for access/refresh tokens
+    token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+    data = {
+        "client_key": settings.TIKTOK_CLIENT_ID,
+        "client_secret": settings.TIKTOK_CLIENT_SECRET,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": settings.TIKTOK_REDIRECT_URI,
+    }
+
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    resp = requests.post(token_url, data=data, headers=headers)
+    if resp.status_code != 200:
+        log.error(resp.content)
+        messages.error(request, "Failed to fetch tokens from TikTok.")
+        return redirect("/integrations/")
+
+    token_data = resp.json()
+
+    IntegrationsModel.objects.filter(
+        account_id=social_uid, platform=Platform.TIKTOK.value
+    ).delete()
+
+    IntegrationsModel.objects.create(
+        account_id=social_uid,
+        user_id=token_data["open_id"],
+        access_token=token_data["access_token"],
+        refresh_token=token_data["refresh_token"],
+        access_expire=timezone.now() + timezone.timedelta(seconds=token_data["expires_in"]),
+        refresh_expire=timezone.now() + timezone.timedelta(seconds=token_data["refresh_expires_in"]),
+        platform=Platform.TIKTOK.value,
+    )
+
+    messages.success(
+        request,
+        "Successfully logged into TikTok! Now the app can make posts on your behalf.",
+        extra_tags="✅ Success!",
+    )
+
+    return redirect("/integrations/")
+
+
+@login_required
+def tiktok_uninstall(request):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
+
+    IntegrationsModel.objects.filter(
+        account_id=social_uid, platform=Platform.TIKTOK.value
+    ).delete()
+
+    messages.add_message(
+        request,
+        messages.SUCCESS,
+        "Deleted the tokens.",
         extra_tags="✅ Success!",
     )
 

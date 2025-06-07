@@ -9,6 +9,7 @@ class PostForm(ModelForm):
             "post_on_x",
             "post_on_instagram",
             "post_on_facebook",
+            "post_on_tiktok",
             "post_on_linkedin",
             "description",
             "scheduled_on",
@@ -24,6 +25,7 @@ class PostForm(ModelForm):
             "post_on_x": CheckboxInput(),
             "post_on_instagram": CheckboxInput(),
             "post_on_facebook": CheckboxInput(),
+            "post_on_tiktok": CheckboxInput(),
             "post_on_linkedin": CheckboxInput(),
             "process_image": CheckboxInput(attrs={"role":"switch"}),
         }
