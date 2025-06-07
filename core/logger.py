@@ -1,16 +1,24 @@
+import os
 import requests
 from .settings import logpath
 from loguru import logger as log
 from .settings import NOTIFICATION_API_KEY, NOTIFICATION_API_URL
 
 
+def overwrite_on_100mb(message, file):
+    if os.path.exists(logpath) and os.path.getsize(logpath) >= 100 * 1024 * 1024:
+        file.close()
+        os.remove(logpath)  
+        return logpath
+
+
 log.add(
     logpath,
     enqueue=True,
     level="INFO",
-    rotation="100 MB",
-    retention="10 days",
-    compression="zip",
+    rotation=overwrite_on_100mb,
+    retention=None,
+    compression=None,
 )
 
 
