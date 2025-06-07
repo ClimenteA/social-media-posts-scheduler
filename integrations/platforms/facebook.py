@@ -75,6 +75,9 @@ class FacebookPoster:
         upload_start_data = upload_start_response.json()
         video_id = upload_start_data["video_id"]
 
+        file_size_bytes = os.path.getsize(reel_path)
+        file_size_mb = file_size_bytes / (1024 * 1024) 
+
         # Upload reel
         with open(reel_path, "rb") as file:
             upload_initiated_response = requests.post(
@@ -82,50 +85,47 @@ class FacebookPoster:
                 headers={
                     "Authorization": f"OAuth {self.access_token}",
                     "offset": "0",
-                    "file_size": str(os.path.getsize(reel_path)),
+                    "file_size": str(file_size_bytes),
                 },
                 data=file,
             )
             log.debug(upload_initiated_response.json())
             upload_initiated_response.raise_for_status()
 
+        finish_response = requests.post(
+            url=f"https://graph.facebook.com/{self.api_version}/{self.page_id}/video_reels",
+            params={
+                "access_token": self.access_token,
+                "video_id": video_id,
+                "upload_phase": "finish",
+                "description": text,
+            },
+        )
+        finish_response.raise_for_status()
+        log.debug(finish_response.json())
 
-        # Get upload status
-        while True:
-            upload_progress_response = requests.get(
+        max_checks = max(30, int(file_size_mb * 2))  # More time for larger files
+        for _ in range(max_checks):
+            status_res = requests.get(
                 url=f"https://graph.facebook.com/{self.api_version}/{video_id}",
                 params={"fields": "status", "access_token": self.access_token},
             )
-            upload_progress_response.raise_for_status()
-            status_data = upload_progress_response.json().get("status", {})
-            video_status = status_data.get("video_status")
+            status_res.raise_for_status()
+            status_data = status_res.json().get("status", {})
+            log.debug(status_data)
 
-            log.debug(upload_progress_response.json())
-
-            if video_status == "upload_complete":
-                time.sleep(5)
-                # Publish reel
-                finish_response = requests.post(
-                    url=f"https://graph.facebook.com/{self.api_version}/{self.page_id}/video_reels",
-                    params={
-                        "access_token": self.access_token,
-                        "video_id": video_id,
-                        "upload_phase": "finish",
-                        "video_state": "PUBLISHED",
-                        "description": text,
-                    },
-                )
-                finish_response.raise_for_status()
-                log.debug(finish_response.json())
-
-
-            if video_status in ["error", "expired", "upload_failed"]:
-                raise Exception(f"Failed to upload reel id {video_id} to facebook")
-
-            if video_status == "ready":
-                break    
-
+            # Check processing/publishing status directly
+            processing = status_data.get("processing_phase", {}).get("status")
+            publishing = status_data.get("publishing_phase", {}).get("status")
+            
+            if processing == "complete" and publishing == "complete":
+                break  # Success!
+            elif status_data.get("video_status") in ["error", "expired", "upload_failed"]:
+                raise Exception(f"Reel processing failed: {video_id}")
+            
             time.sleep(5)
+        else:
+            raise Exception("Reel processing timed out")
 
         # Get reel link
         reel_link_response = requests.get(

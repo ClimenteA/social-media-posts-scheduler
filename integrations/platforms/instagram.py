@@ -1,3 +1,5 @@
+import os
+import time
 import requests
 from core.logger import log, send_notification
 from dataclasses import dataclass
@@ -61,30 +63,61 @@ class InstagramPoster:
 
         return self.get_post_url(publish.json()["id"])
 
-    def post_text_with_video(self, text: str, video_url: str):
-        
-        params = {
-            "media_type": "REELS",
-            "video_url": video_url,
-            "caption": text,
-            "access_token": self.access_token,
-            "share_to_feed": True,
-        }
 
-        container = requests.post(self.media_url, params=params)
-        container.raise_for_status()
+    def post_text_with_reel(self, text: str, reel_url: str, reel_path: str):
+        # Step 1: Get video file size from local path
+        file_size_bytes = os.path.getsize(reel_path)
+        file_size_mb = file_size_bytes / (1024 * 1024)
 
-        publish = requests.post(
+        # Step 2: Create media container for Reel
+        container_response = requests.post(
+            self.media_url,
+            params={
+                "video_url": reel_url,
+                "caption": text,
+                "access_token": self.access_token,
+                "media_type": "REELS",
+            },
+        )
+        container_response.raise_for_status()
+        container_id = container_response.json()["id"]
+
+        # Step 3: Poll container readiness based on video size
+        max_checks = max(10, int(file_size_mb * 2))  # Scale wait by video size
+        for attempt in range(max_checks):
+            status_url = f"https://graph.facebook.com/{self.api_version}/{container_id}"
+            status_resp = requests.get(
+                status_url,
+                params={
+                    "fields": "status_code",
+                    "access_token": self.access_token,
+                },
+            )
+            status_resp.raise_for_status()
+            status = status_resp.json().get("status_code")
+
+            if status == "FINISHED":
+                break
+            elif status in {"ERROR", "EXPIRED"}:
+                raise Exception(f"Media container failed with status: {status}")
+            else:
+                time.sleep(5)
+        else:
+            raise TimeoutError("Media container not ready after polling")
+
+        # Step 4: Publish the Reel
+        publish_response = requests.post(
             self.media_publish_url,
             headers={"Authorization": f"Bearer {self.access_token}"},
-            json={"creation_id": container.json()["id"]},
+            json={"creation_id": container_id},
         )
-        publish.raise_for_status()
+        log.debug(publish_response.json())
+        publish_response.raise_for_status()
 
-        return self.get_post_url(publish.json()["id"])
+        return self.get_post_url(publish_response.json()["id"])
 
 
-    def make_post(self, text: str, media_url: str = None):
+    def make_post(self, text: str, media_url: str = None, media_path: str = None):
         if media_url is None:
             log.info("No media for instagram post. Skip posting.")
             return
@@ -94,7 +127,7 @@ class InstagramPoster:
                 return self.post_text_with_image(text, media_url)
 
             if media_url.endswith(".mp4"):
-                return self.post_text_with_video(text, media_url)
+                return self.post_text_with_reel(text, media_url, media_path)
 
         raise ErrorThisTypeOfPostIsNotSupported
 
@@ -113,6 +146,7 @@ async def post_on_instagram(
     post_id: int,
     post_text: str,
     media_url: str = None,
+    media_path: str = None,
 ):
 
     err = None
@@ -125,7 +159,7 @@ async def post_on_instagram(
     if integration:
         try:
             poster = InstagramPoster(integration)
-            post_url = poster.make_post(post_text, media_url)
+            post_url = poster.make_post(post_text, media_url, media_path)
             log.success(f"Instagram post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e

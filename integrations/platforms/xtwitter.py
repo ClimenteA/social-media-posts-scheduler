@@ -47,81 +47,6 @@ class XPoster:
         response.raise_for_status()
         return response
 
-    # TODO
-    # def _upload_video(self, media_path: str):
-    #     total_bytes = os.path.getsize(media_path)
-
-    #     media_category = "tweet_video"
-    #     # INIT (new style)
-    #     payload = {
-    #         "media_type": "video/mp4",
-    #         "total_bytes": total_bytes,
-    #         "media_category": media_category,
-    #         "shared": True,
-    #     }
-    #     log.debug(f"Sending init upload X payload: {payload}")
-    #     init_resp = self._make_authenticated_request(
-    #         "post",
-    #         self.upload_init_url,
-    #         json=payload,
-    #         headers={"Content-Type": "application/json"},
-    #     )
-    #     media_id = init_resp.json()["data"]["id"]
-
-    #     # APPEND (one chunk per call)
-    #     with open(media_path, "rb") as f:
-    #         for segment_index, chunk in enumerate(
-    #             iter(lambda: f.read(self.chunk_size), b"")
-    #         ):
-    #             # Note: use multipart/form-data manually
-    #             files = {
-    #                 "segment_index": (None, str(segment_index)),
-    #                 "media": (f"{uuid.uuid4().hex}", chunk),
-    #             }
-
-    #             self._make_authenticated_request(
-    #                 "post",
-    #                 self.upload_append_url(media_id),
-    #                 files=files,
-    #             )
-
-    #     # FINALIZE
-    #     finalize_resp = self._make_authenticated_request(
-    #         "post",
-    #         self.upload_finalize_url(media_id),
-    #     )
-
-    #     processing_info = finalize_resp.json().get("data", {}).get("processing_info")
-    #     if processing_info:
-    #         self._wait_for_processing(media_id)
-
-    #     return media_id
-
-    # def _wait_for_processing(self, media_id):
-    #     while True:
-    #         response = self._make_authenticated_request(
-    #             "get",
-    #             self.upload_url,
-    #             params={"command": "STATUS", "media_id": media_id},
-    #         )
-    #         info = response.json().get("data", {}).get("processing_info")
-
-    #         if not info or info.get("state") == "succeeded":
-    #             return
-    #         if info.get("state") == "failed":
-    #             raise Exception(f"Media processing failed: {info.get('error')}")
-
-    #         time.sleep(info.get("check_after_secs", 5))
-
-    # def post_text_with_video(self, text: str, media_path: str):
-    #     media_id = self._upload_media(media_path)
-    #     response = self._make_authenticated_request(
-    #         "post",
-    #         self.base_url,
-    #         headers={"Content-Type": "application/json"},
-    #         json={"text": text, "media": {"media_ids": [media_id]}},
-    #     )
-    #     return self.get_post_url(response.json()["data"]["id"])
 
     def get_post_url(self, id: int):
         return f"https://x.com/user/status/{id}"
@@ -179,9 +104,6 @@ class XPoster:
 
         if media_path.endswith((".jpg", ".jpeg", ".png")):
             return self.post_text_with_image(text, media_path)
-
-        # if media_path.endswith(".mp4"):
-        #     return self.post_text_with_video(text, media_path)
 
         raise ErrorThisTypeOfPostIsNotSupported
 

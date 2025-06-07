@@ -62,7 +62,7 @@ def post_scheduled_posts():
 
             # INSTAGRAM
             if post.post_on_instagram:
-                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_url))
+                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_url, media_path))
 
         log.debug(f"Gathered async tasks {len(async_tasks)} to run.")
         return await asyncio.gather(*async_tasks)
