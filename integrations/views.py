@@ -71,9 +71,13 @@ def integrations_form(request):
             "linkedin_username": linkedin_integration.username,
             "x_avatar_url": image_url_to_base64(x_integration.avatar_url),
             "x_username": x_integration.username,
+            "tiktok_avatar_url": image_url_to_base64(tiktok_integration.avatar_url),
+            "tiktok_username": tiktok_integration.username,
             "facebook_avatar_url": image_url_to_base64(facebook_integration.avatar_url),
             "facebook_username": facebook_integration.username,
-            "instagram_avatar_url": image_url_to_base64(instagram_integration.avatar_url),
+            "instagram_avatar_url": image_url_to_base64(
+                instagram_integration.avatar_url
+            ),
             "instagram_username": instagram_integration.username,
             "x_ok": x_ok,
             "linkedin_ok": linkedin_ok,
@@ -366,16 +370,12 @@ def facebook_callback(request):
     # Get Facebook Page details (username and avatar_url)
     fb_page_details_response = requests.get(
         url=f"https://graph.facebook.com/v23.0/{page_id}",
-        params={
-            "access_token": page_access_token,
-            "fields": "name,picture{url}"
-        },
+        params={"access_token": page_access_token, "fields": "name,picture{url}"},
     )
     fb_page_details_response.raise_for_status()
     fb_page_data = fb_page_details_response.json()
     fb_username = fb_page_data.get("name")
     fb_avatar_url = fb_page_data.get("picture", {}).get("data", {}).get("url")
-
 
     # Retrieve Instagram accounts linked to the page
     response_instagram = requests.get(
@@ -391,14 +391,13 @@ def facebook_callback(request):
         url=f"https://graph.facebook.com/v22.0/{instagram_user_id}",
         params={
             "access_token": page_access_token,
-            "fields": "username,profile_picture_url"
+            "fields": "username,profile_picture_url",
         },
     )
     ig_details_response.raise_for_status()
     ig_data = ig_details_response.json()
     ig_username = ig_data.get("username")
     ig_avatar_url = ig_data.get("profile_picture_url")
-
 
     # Save Facebook
     IntegrationsModel.objects.filter(
@@ -510,6 +509,20 @@ def tiktok_callback(request):
 
     token_data = resp.json()
 
+    # Fetch TikTok user info (username and avatar)
+    user_info_resp = requests.get(
+        url="https://open.tiktokapis.com/v2/user/info/",
+        headers={
+            "Authorization": f"Bearer {token_data['access_token']}",
+        },
+        params={"fields": "display_name,avatar_url"},
+    )
+    user_info_resp.raise_for_status()
+
+    user_info = user_info_resp.json().get("data", {}).get("user", {})
+    username = user_info.get("display_name")
+    avatar_url = user_info.get("avatar_url")
+
     IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.TIKTOK.value
     ).delete()
@@ -524,6 +537,8 @@ def tiktok_callback(request):
         refresh_expire=timezone.now()
         + timezone.timedelta(seconds=token_data["refresh_expires_in"]),
         platform=Platform.TIKTOK.value,
+        username=username,
+        avatar_url=avatar_url,
     )
 
     messages.success(

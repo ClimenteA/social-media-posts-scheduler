@@ -29,7 +29,16 @@
 </hgroup>
 
 
-<div class="container mt-4">
+<style>
+  .cols-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-column-gap: 20px;
+    grid-row-gap: 0px;
+  }
+</style>
+
+<div class="container cols-2 mt-4">
 
   <article>
     
@@ -50,7 +59,7 @@
 
         </div>
 
-      </div>
+        </div>
 
       <div style="display: flex; align-items: center; gap: 5px;">
 
@@ -94,13 +103,28 @@
 
 
   <article>
-    <h4>
-      <i class="bi bi-tiktok"></i>
-    </h4>
+
+    <div style="display: flex; align-items: center; gap: 5px;">
+
+      <i style="font-size: 40px;" class="bi bi-tiktok"></i>
+
+      <div style="display: flex; gap: 10px;">
+
+        <figure>
+          <img src="{{ tiktok_avatar_url }}" alt="{{ tiktok_username }}" width="40" height="40"
+            style="border-radius: 5px; object-fit: cover; display: inline-block;">
+        </figure>
+
+        <strong>{{ tiktok_username }}</strong>
+      
+      </div>
+
+    </div>
+
     {% if tiktok_ok %}
-    <p>Token expires at {{ tiktok_expire }}, but we can refresh the token automatically.</p> 
+      <p>Token expires at {{ tiktok_expire }}, but we can refresh the token automatically.</p> 
     {% else %}
-    <p>Please click Authorize button to allow this app to publish posts on your behalf.</p>
+      <p>Please click Authorize button to allow this app to publish posts on your behalf.</p>
     {% endif %}
 
     <div style="display: flex; justify-content: end;">
@@ -115,6 +139,7 @@
         </a>
       </div>
     </div>
+
   </article>
 
 
