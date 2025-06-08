@@ -36,7 +36,7 @@
     </div>
 
 
-    <nav style="border-bottom: 1px solid #696868; padding-left: 1rem; padding-right: 1rem;">
+    <nav style="border-bottom: 1px solid #7b8495; padding-left: 1rem; padding-right: 1rem;">
         <ul>
             <li>
                 <a href="/" role="button">
@@ -96,6 +96,20 @@
     {% endif %}
 
     {% django_browser_reload_script %}
+
+
+    <footer style="border-top: 1px solid #7b8495; padding-left: 1rem; padding-right: 1rem; margin-top: 12rem;">
+
+        <div style="display: flex; justify-self: end; gap: 20px; font-size: 12px;">
+            <a href="{% url "legal" %}#privacy-policy">Privacy Policy</a>
+            <a href="{% url "legal" %}#terms-of-service">Terms of Service</a>
+            <a href="{% url "legal" %}#cookie-policy">Cookie Policy</a>
+            <a href="{% url "legal" %}#dsa">DSA Compliance</a>
+            <a target="_blank" href="https://softgata.com/">Build at softgata.com</a>
+        </div>
+
+    </footer>
+
 </body>
 
 </html>
