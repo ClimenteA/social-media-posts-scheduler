@@ -125,7 +125,25 @@
 
 
   <article>
-    <h4><i class="bi bi-twitter-x"></i></h4>
+    
+
+    <div style="display: flex; align-items: center; gap: 5px;">
+
+      <i style="font-size: 40px;" class="bi bi-twitter-x"></i>
+
+      <div style="display: flex; gap: 10px;">
+
+        <figure>
+          <img src="{{ x_avatar_url }}" alt="{{ x_username }}" width="40" height="40"
+            style="border-radius: 5px; object-fit: cover; display: inline-block;">
+        </figure>
+
+        <strong>{{ x_username }}</strong>
+
+      </div>
+
+    </div>
+
     {% if x_ok %}
     <p>Token expires at {{ x_expire }}, but we can refresh the token automatically.</p>
     {% else %}

@@ -69,6 +69,8 @@ def integrations_form(request):
         context={
             "linkedin_avatar_url": image_url_to_base64(linkedin_integration.avatar_url),
             "linkedin_username": linkedin_integration.username,
+            "x_avatar_url": image_url_to_base64(x_integration.avatar_url),
+            "x_username": x_integration.username,
             "x_ok": x_ok,
             "linkedin_ok": linkedin_ok,
             "instagram_ok": facebook_ok,
@@ -149,7 +151,7 @@ def linkedin_callback(request):
         access_expire=access_token_expire,
         platform=Platform.LINKEDIN.value,
         username=username,
-        avatar_url=avatar_url
+        avatar_url=avatar_url,
     )
 
     messages.success(
@@ -222,8 +224,20 @@ def x_callback(request):
 
     user_info = oauth.get("https://api.x.com/2/users/me").json()
     user_id = user_info["data"]["id"]
+    username = user_info["data"]["username"]
 
-    access_expire = timezone.now() + timezone.timedelta(seconds=token["expires_in"] - 900)
+    response = requests.get(
+        url=f"https://api.twitter.com/2/users/by/username/{username}",
+        headers={"Authorization": f"Bearer {token['access_token']}"},
+        params={"user.fields": "profile_image_url"},
+    )
+    response.raise_for_status()
+
+    avatar_url = response.json()["data"]["profile_image_url"]
+
+    access_expire = timezone.now() + timezone.timedelta(
+        seconds=token["expires_in"] - 900
+    )
 
     # Save X
     IntegrationsModel.objects.filter(
@@ -237,6 +251,8 @@ def x_callback(request):
         refresh_token=token["refresh_token"],
         access_expire=access_expire,
         platform=Platform.X_TWITTER.value,
+        username=username,
+        avatar_url=avatar_url,
     )
 
     messages.add_message(
@@ -467,8 +483,10 @@ def tiktok_callback(request):
         user_id=token_data["open_id"],
         access_token=token_data["access_token"],
         refresh_token=token_data["refresh_token"],
-        access_expire=timezone.now() + timezone.timedelta(seconds=token_data["expires_in"]),
-        refresh_expire=timezone.now() + timezone.timedelta(seconds=token_data["refresh_expires_in"]),
+        access_expire=timezone.now()
+        + timezone.timedelta(seconds=token_data["expires_in"]),
+        refresh_expire=timezone.now()
+        + timezone.timedelta(seconds=token_data["refresh_expires_in"]),
         platform=Platform.TIKTOK.value,
     )
 
