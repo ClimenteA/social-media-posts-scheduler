@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from social_django.models import UserSocialAuth
 from .models import IntegrationsModel, Platform
+from .utils import image_url_to_base64
 
 
 @login_required
@@ -66,6 +67,8 @@ def integrations_form(request):
         request,
         "integrations.html",
         context={
+            "linkedin_avatar_url": image_url_to_base64(linkedin_integration.avatar_url),
+            "linkedin_username": linkedin_integration.username,
             "x_ok": x_ok,
             "linkedin_ok": linkedin_ok,
             "instagram_ok": facebook_ok,
@@ -131,6 +134,8 @@ def linkedin_callback(request):
     response.raise_for_status()
     user_info = response.json()
     user_id = user_info.get("sub")
+    username = user_info.get("name")
+    avatar_url = user_info.get("picture")
 
     # Save Linkedin
     IntegrationsModel.objects.filter(
@@ -143,6 +148,8 @@ def linkedin_callback(request):
         access_token=access_token,
         access_expire=access_token_expire,
         platform=Platform.LINKEDIN.value,
+        username=username,
+        avatar_url=avatar_url
     )
 
     messages.success(

@@ -29,7 +29,7 @@
 </hgroup>
 
 
-<div class="container grid mt-4">
+<div class="container mt-4">
 
   <article>
     <h4>
@@ -82,7 +82,24 @@
 
 
   <article>
-    <h4><i class="bi bi-linkedin"></i></h4>
+
+
+    <div style="display: flex; align-items: center; gap: 5px;">
+
+      <i style="font-size: 40px;" class="bi bi-linkedin"></i>
+
+      <div style="display: flex; gap: 10px;">
+
+        <figure>
+          <img src="{{ linkedin_avatar_url }}" alt="{{ linkedin_username }}" width="40" height="40"
+            style="border-radius: 5px; object-fit: cover; display: inline-block;">
+        </figure>
+
+        <strong>{{ linkedin_username }}</strong>
+
+      </div>
+
+    </div>
 
     {% if linkedin_ok %}
     <p>Token expires at {{ linkedin_expire }} make sure to re-authorize until then.</p>

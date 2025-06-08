@@ -20,6 +20,8 @@ class IntegrationsModel(models.Model):
     access_expire = models.DateTimeField(null=True, blank=True)
     refresh_expire = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=1000, choices=Platform)
+    username = models.CharField(max_length=1000, null=True, blank=True)
+    avatar_url = models.CharField(max_length=100000, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         aes_cbc = AESCBC(settings.SECRET_KEY)
