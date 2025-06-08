@@ -1,7 +1,7 @@
 import os
-import math
-import ffmpeg
-from typing import Tuple
+# import math
+# import ffmpeg
+# from typing import Tuple
 import webbrowser
 from core import settings
 from django.test import TestCase
@@ -11,6 +11,8 @@ from integrations.platforms.facebook import FacebookPoster
 from integrations.platforms.instagram import InstagramPoster
 from integrations.platforms.linkedin import LinkedinPoster
 from integrations.platforms.tiktok import TikTokPoster
+from integrations.platforms.refresh_tokens import refresh_access_token_for_tiktok
+
 
 
 class TestPostingOnSocials(TestCase):
@@ -171,6 +173,20 @@ class TestPostingOnSocials(TestCase):
         self.assertIsNotNone(post_url)
 
         webbrowser.open(post_url)
+
+
+    def test_refresh_token_for_tiktok(self):
+        # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_refresh_token_for_tiktok
+
+        integration = IntegrationsModel(
+            account_id=1,
+            user_id=os.getenv("tiktok_user_id"),
+            access_token=os.getenv("tiktok_access_token"),
+            refresh_token=os.getenv("tiktok_refresh_token"),
+            platform=Platform.TIKTOK,
+        )
+
+        refresh_access_token_for_tiktok(integration)
 
 
     # def test_make_reel_for_tiktok(self):
