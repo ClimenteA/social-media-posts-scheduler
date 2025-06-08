@@ -71,6 +71,10 @@ def integrations_form(request):
             "linkedin_username": linkedin_integration.username,
             "x_avatar_url": image_url_to_base64(x_integration.avatar_url),
             "x_username": x_integration.username,
+            "facebook_avatar_url": image_url_to_base64(facebook_integration.avatar_url),
+            "facebook_username": facebook_integration.username,
+            "instagram_avatar_url": image_url_to_base64(instagram_integration.avatar_url),
+            "instagram_username": instagram_integration.username,
             "x_ok": x_ok,
             "linkedin_ok": linkedin_ok,
             "instagram_ok": facebook_ok,
@@ -287,7 +291,7 @@ def x_uninstall(request):
 @login_required
 def facebook_login(request):
     fb_login_url = (
-        "https://www.facebook.com/v22.0/dialog/oauth"
+        "https://www.facebook.com/v23.0/dialog/oauth"
         "?response_type=code"
         f"&client_id={settings.FACEBOOK_CLIENT_ID}"
         f"&redirect_uri={settings.FACEBOOK_REDIRECT_URI}"
@@ -307,7 +311,7 @@ def facebook_callback(request):
 
     # Exchange code for access token
     response = requests.post(
-        url="https://graph.facebook.com/v22.0/oauth/access_token",
+        url="https://graph.facebook.com/v23.0/oauth/access_token",
         data={
             "client_id": settings.FACEBOOK_CLIENT_ID,
             "client_secret": settings.FACEBOOK_CLIENT_SECRET,
@@ -323,7 +327,7 @@ def facebook_callback(request):
 
     # Exchange short-lived token for long-lived token
     response = requests.get(
-        url="https://graph.facebook.com/v22.0/oauth/access_token",
+        url="https://graph.facebook.com/v23.0/oauth/access_token",
         params={
             "grant_type": "fb_exchange_token",
             "client_id": settings.FACEBOOK_CLIENT_ID,
@@ -338,7 +342,7 @@ def facebook_callback(request):
     access_token = token_data["access_token"]
 
     # Retrieve user ID using the Graph API directly
-    user_info_url = "https://graph.facebook.com/v22.0/me"
+    user_info_url = "https://graph.facebook.com/v23.0/me"
     user_info_params = {"access_token": access_token, "fields": "id"}
     user_info_response = requests.get(user_info_url, params=user_info_params)
     user_info_response.raise_for_status()
@@ -347,7 +351,7 @@ def facebook_callback(request):
 
     # Retrieve pages associated with the user
     response_pages = requests.get(
-        url=f"https://graph.facebook.com/v22.0/{user_id}/accounts",
+        url=f"https://graph.facebook.com/v23.0/{user_id}/accounts",
         params={"access_token": access_token},
     )
     response_pages.raise_for_status()
@@ -359,14 +363,42 @@ def facebook_callback(request):
     page_access_token = page["access_token"]
     page_access_token_expire = timezone.now() + timezone.timedelta(days=60)
 
+    # Get Facebook Page details (username and avatar_url)
+    fb_page_details_response = requests.get(
+        url=f"https://graph.facebook.com/v23.0/{page_id}",
+        params={
+            "access_token": page_access_token,
+            "fields": "name,picture{url}"
+        },
+    )
+    fb_page_details_response.raise_for_status()
+    fb_page_data = fb_page_details_response.json()
+    fb_username = fb_page_data.get("name")
+    fb_avatar_url = fb_page_data.get("picture", {}).get("data", {}).get("url")
+
+
     # Retrieve Instagram accounts linked to the page
     response_instagram = requests.get(
-        url=f"https://graph.facebook.com/v22.0/{page_id}/instagram_accounts",
+        url=f"https://graph.facebook.com/v23.0/{page_id}/instagram_accounts",
         params={"access_token": page_access_token},
     )
     response_instagram.raise_for_status()
 
     instagram_user_id = response_instagram.json()["data"][0]["id"]
+
+    # Get Instagram Business Account details (username and avatar_url)
+    ig_details_response = requests.get(
+        url=f"https://graph.facebook.com/v22.0/{instagram_user_id}",
+        params={
+            "access_token": page_access_token,
+            "fields": "username,profile_picture_url"
+        },
+    )
+    ig_details_response.raise_for_status()
+    ig_data = ig_details_response.json()
+    ig_username = ig_data.get("username")
+    ig_avatar_url = ig_data.get("profile_picture_url")
+
 
     # Save Facebook
     IntegrationsModel.objects.filter(
@@ -379,6 +411,8 @@ def facebook_callback(request):
         access_token=page_access_token,
         access_expire=page_access_token_expire,
         platform=Platform.FACEBOOK.value,
+        username=fb_username,
+        avatar_url=fb_avatar_url,
     )
 
     # Save Instagram
@@ -392,6 +426,8 @@ def facebook_callback(request):
         access_token=page_access_token,
         access_expire=page_access_token_expire,
         platform=Platform.INSTAGRAM.value,
+        username=ig_username,
+        avatar_url=ig_avatar_url,
     )
 
     messages.add_message(
