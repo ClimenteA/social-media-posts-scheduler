@@ -30,34 +30,40 @@
 
 
 <style>
-  .cols-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-column-gap: 20px;
-    grid-row-gap: 0px;
+  .sm-col {
+    display: flex;
+    gap: 10px;
+  }
+
+  @media (max-width: 500px) {
+    .sm-col {
+      flex-direction: column;
+    }
   }
 </style>
 
-<div class="container cols-2 mt-4">
+<div class="container mt-4">
 
   <article>
+  
+    <header>
     
-    <div style="display: flex; gap: 10px;">
+    
+    <div style="display: flex; gap: 10px;" class="sm-col">
 
         <div style="display: flex; align-items: center; gap: 5px;">
 
         <i style="font-size: 40px;" class="bi bi-facebook"></i>
-
+        
+        {% if facebook_avatar_url and facebook_username  %}
         <div style="display: flex; gap: 10px;">
-
           <figure>
-            <img src="{{ facebook_avatar_url }}" alt="{{ facebook_username }}" width="40" height="40"
+            <img src="{{ facebook_avatar_url }}" alt="{{ facebook_username }}" width="40px" height="40px"
               style="border-radius: 5px; object-fit: cover; display: inline-block;">
           </figure>
-
           <strong>{{ facebook_username }}</strong>
-
         </div>
+        {% endif %}
 
         </div>
 
@@ -65,20 +71,21 @@
 
         <i style="font-size: 40px;" class="bi bi-instagram"></i>
 
+        {% if instagram_avatar_url and instagram_username %}
         <div style="display: flex; gap: 10px;">
-
           <figure>
-            <img src="{{ instagram_avatar_url }}" alt="{{ instagram_username }}" width="40" height="40"
+            <img src="{{ instagram_avatar_url }}" alt="{{ instagram_username }}" width="40px" height="40px"
               style="border-radius: 5px; object-fit: cover; display: inline-block;">
           </figure>
-
           <strong>{{ instagram_username }}</strong>
-
         </div>
+        {% endif %}
 
       </div>
 
     </div>
+
+    </header>
     
     
     {% if meta_ok %}
@@ -104,22 +111,26 @@
 
   <article>
 
-    <div style="display: flex; align-items: center; gap: 5px;">
+    <header>
 
-      <i style="font-size: 40px;" class="bi bi-tiktok"></i>
+      <div style="display: flex; align-items: center; gap: 5px;">
 
-      <div style="display: flex; gap: 10px;">
+        <i style="font-size: 40px;" class="bi bi-tiktok"></i>
 
-        <figure>
-          <img src="{{ tiktok_avatar_url }}" alt="{{ tiktok_username }}" width="40" height="40"
-            style="border-radius: 5px; object-fit: cover; display: inline-block;">
-        </figure>
+        {% if tiktok_avatar_url and tiktok_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ tiktok_avatar_url }}" alt="{{ tiktok_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ tiktok_username }}</strong>
+        </div>
+        {% endif %}
 
-        <strong>{{ tiktok_username }}</strong>
-      
       </div>
 
-    </div>
+    </header>
+
 
     {% if tiktok_ok %}
       <p>Token expires at {{ tiktok_expire }}, but we can refresh the token automatically.</p> 
@@ -145,23 +156,26 @@
 
   <article>
 
+    <header>
 
-    <div style="display: flex; align-items: center; gap: 5px;">
+      <div style="display: flex; align-items: center; gap: 5px;">
 
-      <i style="font-size: 40px;" class="bi bi-linkedin"></i>
+        <i style="font-size: 40px;" class="bi bi-linkedin"></i>
 
-      <div style="display: flex; gap: 10px;">
-
-        <figure>
-          <img src="{{ linkedin_avatar_url }}" alt="{{ linkedin_username }}" width="40" height="40"
-            style="border-radius: 5px; object-fit: cover; display: inline-block;">
-        </figure>
-
-        <strong>{{ linkedin_username }}</strong>
+        {% if linkedin_avatar_url and linkedin_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ linkedin_avatar_url }}" alt="{{ linkedin_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ linkedin_username }}</strong>
+        </div>
+        {% endif %}
 
       </div>
+      
+    </header>
 
-    </div>
 
     {% if linkedin_ok %}
     <p>Token expires at {{ linkedin_expire }} make sure to re-authorize until then.</p>
@@ -188,23 +202,25 @@
 
   <article>
     
+    <header>
 
-    <div style="display: flex; align-items: center; gap: 5px;">
+      <div style="display: flex; align-items: center; gap: 5px;">
 
-      <i style="font-size: 40px;" class="bi bi-twitter-x"></i>
+        <i style="font-size: 40px;" class="bi bi-twitter-x"></i>
 
-      <div style="display: flex; gap: 10px;">
-
-        <figure>
-          <img src="{{ x_avatar_url }}" alt="{{ x_username }}" width="40" height="40"
-            style="border-radius: 5px; object-fit: cover; display: inline-block;">
-        </figure>
-
-        <strong>{{ x_username }}</strong>
+        {% if x_avatar_url and x_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ x_avatar_url }}" alt="{{ x_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ x_username }}</strong>
+        </div>
+        {% endif %}
 
       </div>
 
-    </div>
+    </header>
 
     {% if x_ok %}
     <p>Token expires at {{ x_expire }}, but we can refresh the token automatically.</p>
