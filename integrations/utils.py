@@ -1,5 +1,7 @@
 import base64
 import requests
+from .models import IntegrationsModel, Platform
+from .platforms.tiktok import TikTokPoster
 
 
 # Brave browser thinks external profile url pics are an advert.
@@ -16,3 +18,22 @@ def image_url_to_base64(url: str) -> str | None:
         return f"data:{content_type};base64,{encoded_image}"
     except requests.RequestException:
         return url
+
+
+def get_tiktok_checkboxes(account_id: int):
+
+    integration = IntegrationsModel.objects.filter(
+        account_id=account_id, platform=Platform.TIKTOK.value
+    ).first()
+
+    if not integration:
+        return 
+    
+    poster = TikTokPoster(integration)
+
+    return poster.get_creator_info()
+
+    
+
+
+

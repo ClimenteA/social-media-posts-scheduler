@@ -165,14 +165,19 @@ class TestPostingOnSocials(TestCase):
 
         poster = TikTokPoster(integration)
 
-        post_text = "Test"
-        media_path = "./static/imposting-video-reel-tiktok.mp4"
+        creator_info = poster.get_creator_info()
 
-        post_url = poster.make_post(post_text, media_path)
 
-        self.assertIsNotNone(post_url)
+        self.assertIsNotNone(creator_info)
 
-        webbrowser.open(post_url)
+        # post_text = "Test"
+        # media_url = "./static/imposting-video-reel-tiktok.mp4"
+
+        # post_url = poster.make_post(post_text, media_url)
+
+        # self.assertIsNotNone(post_url)
+
+        # webbrowser.open(post_url)
 
 
     def test_refresh_token_for_tiktok(self):

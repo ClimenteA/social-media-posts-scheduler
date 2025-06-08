@@ -1,5 +1,23 @@
 from django.forms import ModelForm, CheckboxInput, DateTimeInput
-from .models import PostModel
+from .models import PostModel, TikTokPostModel
+
+
+
+class TiktokForm(ModelForm):
+    class Meta:
+        model = TikTokPostModel
+        fields = [
+            "comment_disabled",
+            "duet_disabled",
+            "stitch_disabled",
+            "privacy_level_options",
+        ]
+
+        widgets = {
+            "comment_disabled": CheckboxInput(attrs={"role":"switch"}),
+            "duet_disabled": CheckboxInput(attrs={"role":"switch"}),
+            "stitch_disabled": CheckboxInput(attrs={"role":"switch"}),
+        }
 
 
 class PostForm(ModelForm):

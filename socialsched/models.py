@@ -6,6 +6,30 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.utils.timezone import is_aware
 from enum import IntEnum
 from integrations.models import IntegrationsModel, Platform
+from django.utils.translation import gettext_lazy as _
+
+
+class PrivacyLevelOptions(models.TextChoices):
+    FOLLOWER_OF_CREATOR = "FOLLOWER_OF_CREATOR", _("Followers of Creator")
+    PUBLIC_TO_EVERYONE = "PUBLIC_TO_EVERYONE", _("Public to Everyone")
+    MUTUAL_FOLLOW_FRIENDS = "MUTUAL_FOLLOW_FRIENDS", _("Mutual Follow Friends")
+    SELF_ONLY = "SELF_ONLY", _("Self Only")
+
+
+class TikTokPostModel(models.Model):
+    post_id = models.IntegerField()
+    account_id = models.IntegerField()
+    comment_disabled = models.BooleanField()
+    duet_disabled = models.BooleanField()
+    stitch_disabled = models.BooleanField()
+    max_video_post_duration_sec = models.IntegerField()
+    privacy_level_options = models.CharField(max_length=1000, choices=PrivacyLevelOptions)
+
+    class Meta:
+        app_label = "socialsched"
+
+    def __str__(self):
+        return f"AccountId:{self.account_id} PostId: {self.post_id}"
 
 
 class TextMaxLength(IntEnum):
@@ -149,10 +173,10 @@ class PostModel(models.Model):
                 )
             
         if self.post_on_tiktok:
-            ld_ok = IntegrationsModel.objects.filter(
+            tk_ok = IntegrationsModel.objects.filter(
                 account_id=self.account_id, platform=Platform.TIKTOK.value
             ).first()
-            if not ld_ok:
+            if not tk_ok:
                 raise ValueError(
                     "Please got to Integrations and authorize TikTok app"
                 )

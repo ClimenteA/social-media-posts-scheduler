@@ -6,9 +6,10 @@ from django.utils import timezone
 from django.db.models import Min, Max
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
+from integrations.utils import get_tiktok_checkboxes
 from .image_processor.instagram_image import make_instagram_image
 from .models import PostModel
-from .forms import PostForm
+from .forms import PostForm, TiktokForm
 from .schedule_utils import (
     get_day_data,
     get_initial_month_placeholder,
@@ -159,6 +160,11 @@ def schedule_form(request, isodate):
 
     form = PostForm(initial={"scheduled_on": scheduled_on})
 
+    tiktok_form = None
+    tiktok_checkboxes = get_tiktok_checkboxes(social_uid)
+    if tiktok_checkboxes:
+        tiktok_form = TiktokForm()
+
     return render(
         request,
         "schedule.html",
@@ -166,12 +172,14 @@ def schedule_form(request, isodate):
             "show_form": show_form,
             "posts": posts,
             "post_form": form,
+            "tiktok_form": tiktok_form,
             "isodate": isodate,
             "year": scheduled_on.year,
             "current_date": scheduled_on,
             "prev_date": prev_date,
             "today": today.date().isoformat(),
             "next_date": next_date,
+            "tiktok_checkboxes": tiktok_checkboxes
         },
     )
 
