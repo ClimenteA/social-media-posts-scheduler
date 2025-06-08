@@ -411,7 +411,7 @@ def tiktok_login(request):
         "response_type": "code",
         "scope": "user.info.basic,video.publish",
         "redirect_uri": settings.TIKTOK_REDIRECT_URI,
-        "state": str(request.user.pk),
+        "state": uuid.uuid4().hex,
     }
     tiktok_login_url = f"https://www.tiktok.com/v2/auth/authorize/?{urlencode(params)}"
     return redirect(tiktok_login_url)
