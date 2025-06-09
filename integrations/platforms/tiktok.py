@@ -1,8 +1,9 @@
+import os
 import requests
 from core.logger import log, send_notification
 from dataclasses import dataclass
 from integrations.models import IntegrationsModel, Platform
-from socialsched.models import PostModel
+from socialsched.models import PostModel, TikTokPostModel
 from asgiref.sync import sync_to_async
 from .common import (
     get_integration,
@@ -73,8 +74,54 @@ class TikTokPoster:
 
         return data.get("data", {})
 
-    def make_post(self):
-        pass
+    def make_post(
+        self,
+        account_id: int,
+        post_id: int,
+        post_text: str,
+        media_path: str
+    ):
+        
+        tiktok_settings = TikTokPostModel.objects.filter(post_id=post_id, account_id=account_id).get()
+
+        video_size_bytes = os.path.getsize(media_path)
+
+        init_upload_response = requests.post(
+            url=f"{self.base_url}/post/publish/video/init/",
+            headers=self.headers,
+            json={
+                "post_info": {
+                    "video_cover_timestamp_ms": 1000,
+                    "title": post_text[:2200],
+                    "privacy_level": tiktok_settings.privacy_level_options,
+                    "disable_duet": not tiktok_settings.allow_duet,
+                    "disable_comment": not tiktok_settings.allow_comment,
+                    "disable_stitch": not tiktok_settings.allow_stitch,
+                    "brand_content_toggle": tiktok_settings.branded_content,
+                    "brand_organic_toggle": tiktok_settings.your_brand,
+                    "is_aigc": tiktok_settings.ai_generated,
+                },
+                "source_info": {
+                    "source": "FILE_UPLOAD",
+                    "video_size": video_size_bytes,
+                    "chunk_size": 10000000,
+                    "total_chunk_count": 5,
+                },
+            },
+        )
+        log.debug(init_upload_response.json())
+        init_upload_response.raise_for_status()
+
+        init_upload = init_upload_response.json()
+        publish_id = init_upload["data"]["publish_id"]
+        upload_url = init_upload["data"]["upload_url"]
+
+
+
+
+
+
+
 
 
 @sync_to_async
@@ -101,7 +148,13 @@ async def post_on_tiktok(
     if integration:
         try:
             poster = TikTokPoster(integration)
-            post_url = poster.make_post(post_text, media_path)
+            poster.get_creator_info()  # Raise error if user can't post
+            post_url = poster.make_post(
+                account_id,
+                post_id,
+                post_text, 
+                media_path
+            )
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e
@@ -117,8 +170,8 @@ async def post_on_tiktok(
     await update_tiktok_link(post_id, post_url, str(err)[0:50])
 
 
-
-
+# Test URL
+# https://sf16-va.tiktokcdn.com/obj/eden-va2/uvpapzpbxjH-aulauvJ-WV[[/ljhwZthlaukjlkulzlp/3min.mp4
 
 
 # @dataclass

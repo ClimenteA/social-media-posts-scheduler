@@ -24,7 +24,7 @@
         {{ tiktok_form.nickname.as_hidden }}
         {{ tiktok_form.max_video_post_duration_sec.as_hidden }}
 
-        <div class="grid" style="align-items: center; margin-top: 2rem;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; margin-top: 2rem;">
 
             <label for="{{ tiktok_form.privacy_level_options.id_for_label }}">
                 Who can view this video?
@@ -39,27 +39,32 @@
             </label>
 
             <div>
+                <legend>Generated with AI?</legend>
+                {{ tiktok_form.ai_generated }}
+                {{ tiktok_form.ai_generated.errors }}
+                <label for="{{ tiktok_form.ai_generated.id_for_label }}">Yes.</label>
             </div>
 
         </div>
 
-
-        <fieldset>
-            <legend>Allow users to</legend>
-
-            {{ tiktok_form.allow_comment }}
-            {{ tiktok_form.allow_comment.errors }}
-            <label for="{{ tiktok_form.allow_comment.id_for_label }}">Comment</label>
-
-            {{ tiktok_form.allow_duet }}
-            {{ tiktok_form.allow_duet.errors }}
-            <label for="{{ tiktok_form.allow_duet.id_for_label }}">Duet</label>
-
-            {{ tiktok_form.allow_stitch }}
-            {{ tiktok_form.allow_stitch.errors }}
-            <label for="{{ tiktok_form.allow_stitch.id_for_label }}">Stitch</label>
-
-        </fieldset>
+            <fieldset>
+                <legend>Allow users to</legend>
+    
+                {{ tiktok_form.allow_comment }}
+                {{ tiktok_form.allow_comment.errors }}
+                <label for="{{ tiktok_form.allow_comment.id_for_label }}">Comment</label>
+    
+                {{ tiktok_form.allow_duet }}
+                {{ tiktok_form.allow_duet.errors }}
+                <label for="{{ tiktok_form.allow_duet.id_for_label }}">Duet</label>
+    
+                {{ tiktok_form.allow_stitch }}
+                {{ tiktok_form.allow_stitch.errors }}
+                <label for="{{ tiktok_form.allow_stitch.id_for_label }}">Stitch</label>
+    
+            </fieldset>
+    
+         
 
         <div class="mt-4">
 

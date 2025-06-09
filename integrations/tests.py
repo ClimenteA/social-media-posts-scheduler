@@ -6,6 +6,7 @@ import webbrowser
 from core import settings
 from django.test import TestCase
 from integrations.models import IntegrationsModel, Platform
+from socialsched.models import TikTokPostModel, PrivacyLevelOptions
 from integrations.platforms.xtwitter import XPoster
 from integrations.platforms.facebook import FacebookPoster
 from integrations.platforms.instagram import InstagramPoster
@@ -152,8 +153,8 @@ class TestPostingOnSocials(TestCase):
         webbrowser.open(post_url)
 
 
-    def test_post_text_with_reel_on_tiktok(self):
-        # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_post_text_with_reel_on_tiktok
+    def test_get_tiktok_creator_info(self):
+        # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_get_tiktok_creator_info
 
         integration = IntegrationsModel(
             account_id=1,
@@ -167,17 +168,48 @@ class TestPostingOnSocials(TestCase):
 
         creator_info = poster.get_creator_info()
 
-
         self.assertIsNotNone(creator_info)
 
-        # post_text = "Test"
-        # media_url = "./static/imposting-video-reel-tiktok.mp4"
 
-        # post_url = poster.make_post(post_text, media_url)
+    def test_post_text_with_reel_on_tiktok(self):
+        # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_post_text_with_reel_on_tiktok
+        
+        tiktok_settings = TikTokPostModel(
+            post_id = 1,
+            account_id = 1,
+            nickname = "developeralin",
+            max_video_post_duration_sec = 900,
+            privacy_level_options = PrivacyLevelOptions.SELF_ONLY.value,
+            allow_comment = True,
+            allow_duet = True,
+            allow_stitch = True,
+            disclose_video_content = False,
+            your_brand = False,
+            branded_content = False,
+            ai_generated = False
+        )
 
-        # self.assertIsNotNone(post_url)
+        tiktok_settings.save()
 
-        # webbrowser.open(post_url)
+        integration = IntegrationsModel(
+            account_id=tiktok_settings.account_id,
+            user_id=os.getenv("tiktok_user_id"),
+            access_token=os.getenv("tiktok_access_token"),
+            refresh_token=os.getenv("tiktok_refresh_token"),
+            platform=Platform.TIKTOK,
+        )
+        
+
+        poster = TikTokPoster(integration)
+
+        post_text = "Test"
+        media_url = "./static/imposting-video-reel-tiktok.mp4"
+
+        post_url = poster.make_post(tiktok_settings.account_id, tiktok_settings.post_id, post_text, media_url)
+
+        self.assertIsNotNone(post_url)
+
+        webbrowser.open(post_url)
 
 
     def test_refresh_token_for_tiktok(self):

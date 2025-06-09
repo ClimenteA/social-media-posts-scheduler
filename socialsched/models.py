@@ -28,6 +28,7 @@ class TikTokPostModel(models.Model):
     disclose_video_content = models.BooleanField()
     your_brand = models.BooleanField()
     branded_content = models.BooleanField()
+    ai_generated = models.BooleanField()
 
 
 
