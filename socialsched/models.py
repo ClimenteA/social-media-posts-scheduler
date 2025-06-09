@@ -22,7 +22,6 @@ class TikTokPostModel(models.Model):
     nickname = models.CharField(max_length=1000)
     max_video_post_duration_sec = models.IntegerField()
     privacy_level_options = models.CharField(max_length=1000, choices=PrivacyLevelOptions)
-    # If creator_info API has these disabled mark them as disabled
     allow_comment = models.BooleanField(blank=True, default=None)
     allow_duet = models.BooleanField(blank=True, default=None)
     allow_stitch = models.BooleanField(blank=True, default=None)

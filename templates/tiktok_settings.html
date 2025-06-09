@@ -8,7 +8,7 @@
 
 
 
-<article class="article-form mt-2 container">
+<article x-data="discloseToggle" class="article-form mt-2 container">
 
     <form action="{% url 'tiktok_settings_save' isodate=isodate post_id=post_id %}" method="POST">
 
@@ -28,7 +28,13 @@
 
             <label for="{{ tiktok_form.privacy_level_options.id_for_label }}">
                 Who can view this video?
-                {{ tiktok_form.privacy_level_options }}
+                <select name="privacy_level_options" required="" id="id_privacy_level_options">
+                    <option value="" selected>---------</option>
+                    <option value="FOLLOWER_OF_CREATOR">Followers of Creator</option>
+                    <option value="PUBLIC_TO_EVERYONE" :selected="brandedContent">Public to Everyone</option>
+                    <option value="MUTUAL_FOLLOW_FRIENDS">Mutual Follow Friends</option>
+                    <option value="SELF_ONLY">Self Only</option>
+                </select>
                 {{ tiktok_form.privacy_level_options.errors }}
             </label>
 
@@ -55,22 +61,18 @@
 
         </fieldset>
 
-        <div x-data="discloseToggle" 
-        x-init="$watch('disclose', (value) => {
-            if (!disclose) {
-                brandedContent = false;
-                yourBrand = false;
-            }
-        })" class="mt-4">
+        <div class="mt-4">
 
             <div>
                 <label for="{{ tiktok_form.disclose_video_content.id_for_label }}">
-                    <input x-model="disclose" type="checkbox" role="switch"
-                        name="{{ tiktok_form.disclose_video_content.name }}"
-                        id="{{ tiktok_form.disclose_video_content.id_for_label }}">
-                    {{ tiktok_form.disclose_video_content.errors }}
+                <input @click="setDisclose" x-model="disclose" type="checkbox" role="switch"
+                    name="{{ tiktok_form.disclose_video_content.name }}"
+                    id="{{ tiktok_form.disclose_video_content.id_for_label }}">
                     Disclose video content
                 </label>
+                <p class="mt-2">
+                    {{ tiktok_form.disclose_video_content.errors }}
+                </p>
                 <small class="pico-color-slate-600">
                     Turn on to disclose that this video promotes goods or services
                     in exchange for something of value.
@@ -88,7 +90,8 @@
 
                     <div>
                         <label for="{{ tiktok_form.your_brand.id_for_label }}">
-                            <input x-model="yourBrand" type="checkbox" name="{{ tiktok_form.your_brand.name }}" id="{{ tiktok_form.your_brand.id_for_label }}">
+                            <input x-model="yourBrand" type="checkbox" name="{{ tiktok_form.your_brand.name }}"
+                                id="{{ tiktok_form.your_brand.id_for_label }}">
                             {{ tiktok_form.your_brand.errors }}
                             Your Brand
                         </label>
@@ -156,6 +159,15 @@
             disclose: false,
             brandedContent: false,
             yourBrand: false,
+            setDisclose: function() {
+                this.disclose = !this.disclose;
+
+                if (!this.disclose) {
+                    this.brandedContent = false;
+                    this.yourBrand = false;
+                }
+            },
+
         }
     }
 
