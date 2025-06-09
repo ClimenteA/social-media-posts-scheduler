@@ -114,7 +114,7 @@
         <div x-data="emojiPicker()">
 
             <label for="{{ post_form.description.id_for_label }}">
-                Title/Post:
+                Title/Post/Caption:
                 <textarea x-data x-grow @input="countLength" name="{{ post_form.description.name }}" cols="40" rows="3"
                     maxlength="63207" required
                     id="{{ post_form.description.id_for_label }}">{% if post_form.description.value %}{{ post_form.description.value }}{% endif %}</textarea>
@@ -162,33 +162,6 @@
 
     </form>
 </article>
-
-
-
-{% if tiktok_form %}
-
-<article class="article-form mt-2 container">
-    
-    <h4>TikTok Settings</h4>
-
-    <form action="todo" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <div>
-            {{ tiktok_form.as_p }}
-        </div>
-
-        <button type="submit">
-            <i class="bi bi-save"></i>
-            <span>Save settings</span>
-        </button>
-
-    </form>
-    
-</article>
-
-{% endif %}
-
 
 {% else %}
 

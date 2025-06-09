@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page-title %} TikTok Post Settings {% endblock %}
+
+
+{% block body %}
+
+
+
+<article class="article-form mt-2 container">
+
+    <form action="{% url 'tiktok_settings_save' isodate=isodate post_id=post_id %}" method="POST">
+
+        {% csrf_token %}
+
+        <hgroup>
+            <h4>TikTok Video Settings</h4>
+            <p>Manage who can view and interact with your tiktok video, and disclose promotions.</p>
+        </hgroup>
+
+        {{ tiktok_form.post_id.as_hidden }}
+        {{ tiktok_form.account_id.as_hidden }}
+        {{ tiktok_form.nickname.as_hidden }}
+        {{ tiktok_form.max_video_post_duration_sec.as_hidden }}
+
+        <div class="grid" style="align-items: center; margin-top: 2rem;">
+
+            <label for="{{ tiktok_form.privacy_level_options.id_for_label }}">
+                Who can view this video?
+                {{ tiktok_form.privacy_level_options }}
+                {{ tiktok_form.privacy_level_options.errors }}
+            </label>
+
+            <div>
+            </div>
+
+        </div>
+
+
+        <fieldset>
+            <legend>Allow users to</legend>
+
+            {{ tiktok_form.allow_comment }}
+            {{ tiktok_form.allow_comment.errors }}
+            <label for="{{ tiktok_form.allow_comment.id_for_label }}">Comment</label>
+
+            {{ tiktok_form.allow_duet }}
+            {{ tiktok_form.allow_duet.errors }}
+            <label for="{{ tiktok_form.allow_duet.id_for_label }}">Duet</label>
+
+            {{ tiktok_form.allow_stitch }}
+            {{ tiktok_form.allow_stitch.errors }}
+            <label for="{{ tiktok_form.allow_stitch.id_for_label }}">Stitch</label>
+
+        </fieldset>
+
+        <div x-data="discloseToggle" 
+        x-init="$watch('disclose', (value) => {
+            if (!disclose) {
+                brandedContent = false;
+                yourBrand = false;
+            }
+        })" class="mt-4">
+
+            <div>
+                <label for="{{ tiktok_form.disclose_video_content.id_for_label }}">
+                    <input x-model="disclose" type="checkbox" role="switch"
+                        name="{{ tiktok_form.disclose_video_content.name }}"
+                        id="{{ tiktok_form.disclose_video_content.id_for_label }}">
+                    {{ tiktok_form.disclose_video_content.errors }}
+                    Disclose video content
+                </label>
+                <small class="pico-color-slate-600">
+                    Turn on to disclose that this video promotes goods or services
+                    in exchange for something of value.
+                    Your video could promote yourself, a third party, or both.
+                </small>
+            </div>
+
+            <div x-show="disclose">
+                <blockquote>
+                    ℹ️ Your video will be labeled as "Promotional content".
+                    This cannot be changed once your video is published.
+                </blockquote>
+
+                <fieldset class="grid">
+
+                    <div>
+                        <label for="{{ tiktok_form.your_brand.id_for_label }}">
+                            <input x-model="yourBrand" type="checkbox" name="{{ tiktok_form.your_brand.name }}" id="{{ tiktok_form.your_brand.id_for_label }}">
+                            {{ tiktok_form.your_brand.errors }}
+                            Your Brand
+                        </label>
+                        <small class="pico-color-slate-600">
+                            Your are promoting yourself or your own business.
+                            This video will be classified as Brand Organic.
+                        </small>
+                    </div>
+
+                    <div>
+                        <label for="{{ tiktok_form.branded_content.id_for_label }}">
+                            <input x-model="brandedContent" type="checkbox"
+                                name="{{ tiktok_form.branded_content.name }}"
+                                id="{{ tiktok_form.branded_content.id_for_label }}">
+                            {{ tiktok_form.branded_content.errors }}
+                            Branded Content
+                        </label>
+                        <small class="pico-color-slate-600">
+                            You are promoting another brand or third party.
+                            This video will be clasified as Branded Content.
+                        </small>
+                    </div>
+
+                </fieldset>
+            </div>
+
+
+            <div class="mt-2">
+                <p x-show="!brandedContent">
+                    By posting, you agree to TikTok's <a target="_blank"
+                        href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en">
+                        Music Usage Confirmation
+                    </a>
+                </p>
+
+                <p x-show="brandedContent">
+                    By posting, you agree to TikTok's
+                    <a target="_blank" href="https://www.tiktok.com/legal/page/global/bc-policy/en">
+                        Branded Content Policy
+                    </a>
+                    and
+                    <a target="_blank" href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en">
+                        Music Usage Confirmation
+                    </a>
+                    .
+                </p>
+            </div>
+
+        </div>
+
+        <button type="submit" class="mt-2">
+            <i class="bi bi-save"></i>
+            <span>Save settings</span>
+        </button>
+
+    </form>
+
+</article>
+
+
+<script>
+
+    function discloseToggle() {
+        return {
+            disclose: false,
+            brandedContent: false,
+            yourBrand: false,
+        }
+    }
+
+</script>
+
+{% endblock %}

@@ -20,7 +20,7 @@ def image_url_to_base64(url: str) -> str | None:
         return url
 
 
-def get_tiktok_checkboxes(account_id: int):
+def get_tiktok_creator_info(account_id: int):
 
     integration = IntegrationsModel.objects.filter(
         account_id=account_id, platform=Platform.TIKTOK.value

@@ -19,17 +19,17 @@ class PrivacyLevelOptions(models.TextChoices):
 class TikTokPostModel(models.Model):
     post_id = models.IntegerField()
     account_id = models.IntegerField()
-    comment_disabled = models.BooleanField()
-    duet_disabled = models.BooleanField()
-    stitch_disabled = models.BooleanField()
+    nickname = models.CharField(max_length=1000)
     max_video_post_duration_sec = models.IntegerField()
     privacy_level_options = models.CharField(max_length=1000, choices=PrivacyLevelOptions)
+    # If creator_info API has these disabled mark them as disabled
+    allow_comment = models.BooleanField(blank=True, default=None)
+    allow_duet = models.BooleanField(blank=True, default=None)
+    allow_stitch = models.BooleanField(blank=True, default=None)
+    disclose_video_content = models.BooleanField()
+    your_brand = models.BooleanField()
+    branded_content = models.BooleanField()
 
-    class Meta:
-        app_label = "socialsched"
-
-    def __str__(self):
-        return f"AccountId:{self.account_id} PostId: {self.post_id}"
 
 
 class TextMaxLength(IntEnum):

@@ -1,26 +1,13 @@
-from django.forms import ModelForm, CheckboxInput, DateTimeInput
+from django import forms
 from .models import PostModel, TikTokPostModel
 
-
-
-class TiktokForm(ModelForm):
+class TikTokForm(forms.ModelForm):
     class Meta:
         model = TikTokPostModel
-        fields = [
-            "comment_disabled",
-            "duet_disabled",
-            "stitch_disabled",
-            "privacy_level_options",
-        ]
-
-        widgets = {
-            "comment_disabled": CheckboxInput(attrs={"role":"switch"}),
-            "duet_disabled": CheckboxInput(attrs={"role":"switch"}),
-            "stitch_disabled": CheckboxInput(attrs={"role":"switch"}),
-        }
+        fields = "__all__"
 
 
-class PostForm(ModelForm):
+class PostForm(forms.ModelForm):
     class Meta:
         model = PostModel
         fields = [
@@ -37,13 +24,13 @@ class PostForm(ModelForm):
         ]
 
         widgets = {
-            "scheduled_on": DateTimeInput(
+            "scheduled_on": forms.DateTimeInput(
                 format=("%Y-%m-%dT%H:%M"), attrs={"type": "datetime-local"}
             ),
-            "post_on_x": CheckboxInput(),
-            "post_on_instagram": CheckboxInput(),
-            "post_on_facebook": CheckboxInput(),
-            "post_on_tiktok": CheckboxInput(),
-            "post_on_linkedin": CheckboxInput(),
-            "process_image": CheckboxInput(attrs={"role":"switch"}),
+            "post_on_x": forms.CheckboxInput(),
+            "post_on_instagram": forms.CheckboxInput(),
+            "post_on_facebook": forms.CheckboxInput(),
+            "post_on_tiktok": forms.CheckboxInput(),
+            "post_on_linkedin": forms.CheckboxInput(),
+            "process_image": forms.CheckboxInput(attrs={"role":"switch"}),
         }
