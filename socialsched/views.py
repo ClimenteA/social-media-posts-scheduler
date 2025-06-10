@@ -4,11 +4,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Min, Max
+from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
+from integrations.utils import get_tiktok_creator_info
 from .image_processor.instagram_image import make_instagram_image
-from .models import PostModel
-from .forms import PostForm
+from .models import PostModel, TikTokPostModel
+from .forms import PostForm, TikTokForm
 from .schedule_utils import (
     get_day_data,
     get_initial_month_placeholder,
@@ -213,16 +215,25 @@ def schedule_save(request, isodate):
                 make_instagram_image(post.media_file.path, post.description)
             else:
                 post.media_file = make_instagram_image(None, post.description)
-                
+
             post.save()
 
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            "Post was saved!",
-            extra_tags="✅ Success!",
-        )
-        return redirect(f"/schedule/{isodate}/")
+        if post.post_on_tiktok:
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Please fill TikTok video settings.",
+                extra_tags="ℹ️ Fill tiktok form",
+            )
+            return redirect(f"/tiktok-settings/{isodate}/{post.pk}")
+        else:
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Post was saved!",
+                extra_tags="✅ Success!",
+            )
+            return redirect(f"/schedule/{isodate}/")
     except Exception as err:
         messages.add_message(
             request,
@@ -241,6 +252,9 @@ def schedule_delete(request, post_id):
     post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
     isodate = post.scheduled_on.date().isoformat()
     post.delete()
+
+    TikTokPostModel.objects.filter(post_id=post_id, account_id=social_uid).delete()
+
     messages.add_message(
         request,
         messages.SUCCESS,
@@ -248,6 +262,78 @@ def schedule_delete(request, post_id):
         extra_tags="✅ Succes!",
     )
     return redirect(f"/schedule/{isodate}/")
+
+
+@login_required
+def tiktok_settings(request, isodate: str, post_id: int):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
+
+    tiktok_data = get_tiktok_creator_info(social_uid)
+
+    form = TikTokForm(
+        initial={
+            "post_id": post_id,
+            "account_id": social_uid,
+            "nickname": tiktok_data["creator_nickname"],
+            "max_video_post_duration_sec": tiktok_data["max_video_post_duration_sec"],
+            "privacy_level_options": tiktok_data["privacy_level_options"],
+            "allow_comment": not tiktok_data["comment_disabled"],
+            "allow_duet": not tiktok_data["duet_disabled"],
+            "allow_stitch": not tiktok_data["stitch_disabled"],
+        }
+    )
+
+    return render(
+        request,
+        "tiktok_settings.html",
+        context={"post_id": post_id, "isodate": isodate, "tiktok_form": form},
+    )
+
+
+@login_required
+def tiktok_settings_save(request, isodate: str, post_id: int):
+
+    form = TikTokForm(request.POST)
+
+    if not form.is_valid():
+
+        log.error(form.errors.as_json())
+
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "Form had errors",
+            extra_tags="🟥 Error!",
+        )
+        return render(
+            request,
+            "tiktok_settings.html",
+            context={
+                "post_id": post_id,
+                "isodate": isodate,
+                "tiktok_form": form,
+            },
+        )
+
+    try:
+        form.save()
+        
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "Tiktok settings were saved!",
+            extra_tags="✅ Success!",
+        )
+        return redirect(f"/schedule/{isodate}/")
+    except Exception as err:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            err,
+            extra_tags="🟥 Error!",
+        )
+        return redirect(f"/schedule/{isodate}/")
 
 
 def login_user(request):
@@ -258,3 +344,7 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
+
+
+def legal(request):
+    return render(request, "legal.html")

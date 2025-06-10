@@ -47,6 +47,11 @@ X_CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
 X_REDIRECT_URI = APP_URL + "/X/callback/"
 X_UNINSTALL_URI = APP_URL + "/X/uninstall/"
 
+TIKTOK_CLIENT_ID = os.getenv("TIKTOK_CLIENT_ID")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
+TIKTOK_REDIRECT_URI = APP_URL + "/tiktok/callback/"
+TIKTOK_UNINSTALL_URI = APP_URL + "/tiktok/uninstall/"
+
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "imposting.localhost", BASE_REDIRECT_URL]
 

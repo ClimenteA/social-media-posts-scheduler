@@ -150,4 +150,4 @@ async def post_on_linkedin(
     else:
         err = "(Re-)Authorize Linkedin on Integrations page"
 
-    await update_linkedin_link(post_id, post_url, str(err))
+    await update_linkedin_link(post_id, post_url, str(err)[0:50])

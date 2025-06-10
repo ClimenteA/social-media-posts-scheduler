@@ -5,11 +5,11 @@ from django.db.models import Q
 from django.utils import timezone
 from socialsched.models import PostModel
 from zoneinfo import ZoneInfo
-from .models import Platform
 from .platforms.linkedin import post_on_linkedin
 from .platforms.xtwitter import post_on_x
 from .platforms.facebook import post_on_facebook
 from .platforms.instagram import post_on_instagram
+from .platforms.tiktok import post_on_tiktok
 from .platforms.refresh_tokens import refresh_tokens
 
 
@@ -59,11 +59,16 @@ def post_scheduled_posts():
 
             # FACEBOOK
             if post.post_on_facebook:
-                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_url))
+                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_url, media_path))
 
             # INSTAGRAM
             if post.post_on_instagram:
-                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_url))
+                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_url, media_path))
+
+            # TIKTOK
+            if post.post_on_tiktok:
+                async_tasks.append(post_on_tiktok(post.account_id, post.id, text, media_path))
+
 
         log.debug(f"Gathered async tasks {len(async_tasks)} to run.")
         return await asyncio.gather(*async_tasks)

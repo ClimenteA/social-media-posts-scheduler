@@ -6,6 +6,30 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.utils.timezone import is_aware
 from enum import IntEnum
 from integrations.models import IntegrationsModel, Platform
+from django.utils.translation import gettext_lazy as _
+
+
+class PrivacyLevelOptions(models.TextChoices):
+    FOLLOWER_OF_CREATOR = "FOLLOWER_OF_CREATOR", _("Followers of Creator")
+    PUBLIC_TO_EVERYONE = "PUBLIC_TO_EVERYONE", _("Public to Everyone")
+    MUTUAL_FOLLOW_FRIENDS = "MUTUAL_FOLLOW_FRIENDS", _("Mutual Follow Friends")
+    SELF_ONLY = "SELF_ONLY", _("Self Only")
+
+
+class TikTokPostModel(models.Model):
+    post_id = models.IntegerField()
+    account_id = models.IntegerField()
+    nickname = models.CharField(max_length=1000)
+    max_video_post_duration_sec = models.IntegerField()
+    privacy_level_options = models.CharField(max_length=1000, choices=PrivacyLevelOptions)
+    allow_comment = models.BooleanField(blank=True, default=None)
+    allow_duet = models.BooleanField(blank=True, default=None)
+    allow_stitch = models.BooleanField(blank=True, default=None)
+    disclose_video_content = models.BooleanField()
+    your_brand = models.BooleanField()
+    branded_content = models.BooleanField()
+    ai_generated = models.BooleanField()
+
 
 
 class TextMaxLength(IntEnum):
@@ -39,17 +63,29 @@ class PostModel(models.Model):
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
     post_on_facebook = models.BooleanField(blank=True, null=True, default=False)
     post_on_linkedin = models.BooleanField(blank=True, null=True, default=False)
+    post_on_tiktok = models.BooleanField(blank=True, null=True, default=False)
     
     link_x = models.CharField(max_length=50000, blank=True, null=True)
     link_instagram = models.CharField(max_length=50000, blank=True, null=True)
     link_facebook = models.CharField(max_length=50000, blank=True, null=True)
     link_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    link_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
     error_x = models.CharField(max_length=50000, blank=True, null=True)
     error_instagram = models.CharField(max_length=50000, blank=True, null=True)
     error_facebook = models.CharField(max_length=50000, blank=True, null=True)
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    error_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
+
+    @property
+    def has_video(self):
+        return self.media_file and self.media_file.path.lower().endswith('.mp4')
+    
+    @property
+    def has_image(self):
+        return self.media_file and self.media_file.path.lower().endswith((".jpeg", ".jpg", ".png"))
+    
     def save(self, *args, **kwargs):
 
         skip_validation = kwargs.pop("skip_validation", False)
@@ -64,6 +100,7 @@ class PostModel(models.Model):
                 self.post_on_instagram,
                 self.post_on_facebook,
                 self.post_on_linkedin,
+                self.post_on_tiktok,
             ]
         ):
             raise ValueError("At least one platform must be selected for posting.")
@@ -78,9 +115,9 @@ class PostModel(models.Model):
 
         if self.media_file:
             ext = os.path.splitext(self.media_file.name)[1].lower()
-            if ext not in [".jpeg", ".jpg", ".png"]:
+            if ext not in [".jpeg", ".jpg", ".png", ".mp4"]:
                 raise ValueError(
-                    "Unsupported file type. Only JPEG, PNG images are allowed."
+                    "Unsupported file type. Only JPEG, PNG images and MP4 videos are allowed."
                 )
 
         postlen = len(self.description)
@@ -134,7 +171,16 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a LinkedIn post is {TextMaxLength.LINKEDIN}"
                 )
-
+            
+        if self.post_on_tiktok:
+            tk_ok = IntegrationsModel.objects.filter(
+                account_id=self.account_id, platform=Platform.TIKTOK.value
+            ).first()
+            if not tk_ok:
+                raise ValueError(
+                    "Please got to Integrations and authorize TikTok app"
+                )
+        
         super().save(*args, **kwargs)
 
     class Meta:
