@@ -1,5 +1,6 @@
 import os
 import math
+import ffmpeg
 import requests
 from core.logger import log, send_notification
 from dataclasses import dataclass
@@ -101,8 +102,52 @@ class TikTokPoster:
             total_chunk_count = math.ceil(video_size / chunk_size)
 
         return chunk_size, total_chunk_count
+    
 
-    def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
+    def get_video_duration(self, media_path: str) -> int:
+        try:
+            
+            # Probe the video file to get metadata
+            probe = ffmpeg.probe(media_path)
+
+            # Try to get duration from format first (most reliable)
+            if "format" in probe and "duration" in probe["format"]:
+                duration = float(probe["format"]["duration"])
+                return int(duration)
+
+            # Fallback: get duration from video stream
+            video_streams = [
+                stream for stream in probe["streams"] if stream["codec_type"] == "video"
+            ]
+
+            if video_streams:
+                video_stream = video_streams[0]  # Get first video stream
+
+                if "duration" in video_stream:
+                    duration = float(video_stream["duration"])
+                    return int(duration)
+
+                # Another fallback: calculate from duration_ts and time_base
+                if "duration_ts" in video_stream and "time_base" in video_stream:
+                    duration_ts = int(video_stream["duration_ts"])
+                    time_base = video_stream["time_base"]
+
+                    # Parse time_base fraction (e.g., "1/30000")
+                    if "/" in time_base:
+                        num, den = map(int, time_base.split("/"))
+                        duration = (duration_ts * num) / den
+                        return int(duration)
+
+            raise ValueError("Could not determine video duration from metadata")
+
+        except ffmpeg.Error as e:
+            log.error(f"ffmpeg-python error: {e}")
+            raise ValueError(f"Failed to analyze video file with ffmpeg: {e}")
+        except (KeyError, ValueError, TypeError) as e:
+            log.error(f"Failed to parse video metadata: {e}")
+            raise ValueError(f"Invalid video file or corrupted metadata: {e}")
+
+    def initialize_upload(self, account_id: int, post_id: int, post_text: str, media_path: str):
 
         tiktok_settings = TikTokPostModel.objects.filter(
             post_id=post_id, account_id=account_id
@@ -141,6 +186,23 @@ class TikTokPoster:
         publish_id = init_upload["data"]["publish_id"]
         upload_url = init_upload["data"]["upload_url"]
 
+        return publish_id, upload_url
+
+
+    def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
+
+        creator_info = self.get_creator_info()
+        video_duration = self.get_video_duration(media_path)
+        if video_duration > creator_info["max_video_post_duration_sec"]:
+            raise ValueError(f"Maximum video duration allowed for account id: {account_id} is {creator_info['max_video_post_duration_sec']} seconds")
+
+        publish_id, upload_url = self.initialize_upload(account_id, post_id, post_text, media_path)
+
+        
+
+
+
+
 
 
 @sync_to_async
@@ -167,7 +229,6 @@ async def post_on_tiktok(
     if integration:
         try:
             poster = TikTokPoster(integration)
-            poster.get_creator_info()  # Raise error if user can't post
             post_url = poster.make_post(account_id, post_id, post_text, media_path)
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:

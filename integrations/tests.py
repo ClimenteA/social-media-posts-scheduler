@@ -203,9 +203,14 @@ class TestPostingOnSocials(TestCase):
         poster = TikTokPoster(integration)
 
         post_text = "Test"
-        media_url = "./static/imposting-video-reel-tiktok.mp4"
+        media_path = "./static/imposting-video-reel-tiktok.mp4"
 
-        post_url = poster.make_post(tiktok_settings.account_id, tiktok_settings.post_id, post_text, media_url)
+
+        # video_duration = poster.get_video_duration(media_path)
+        # print(video_duration)
+        # assert video_duration
+
+        post_url = poster.make_post(tiktok_settings.account_id, tiktok_settings.post_id, post_text, media_path)
 
         self.assertIsNotNone(post_url)
 
