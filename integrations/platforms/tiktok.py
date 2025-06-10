@@ -1,4 +1,5 @@
 import os
+import math
 import requests
 from core.logger import log, send_notification
 from dataclasses import dataclass
@@ -15,6 +16,9 @@ from .common import (
 class TikTokPoster:
     integration: IntegrationsModel
     api_version: str = "v2"
+    MIN_CHUNK_SIZE: int = 5 * 1024 * 1024  # 5 MB
+    MAX_CHUNK_SIZE: int = 64 * 1024 * 1024  # 64 MB
+    DEFAULT_CHUNK_SIZE: int = 10 * 1024 * 1024  # 10 MB (safe default)
 
     def __post_init__(self):
         self.access_token = self.integration.access_token_value
@@ -74,17 +78,38 @@ class TikTokPoster:
 
         return data.get("data", {})
 
-    def make_post(
-        self,
-        account_id: int,
-        post_id: int,
-        post_text: str,
-        media_path: str
-    ):
-        
-        tiktok_settings = TikTokPostModel.objects.filter(post_id=post_id, account_id=account_id).get()
+    def calculate_chunks(self, video_size: int):
 
-        video_size_bytes = os.path.getsize(media_path)
+        # If video is less than 5MB, upload as whole
+        if video_size < self.MIN_CHUNK_SIZE:
+            return video_size, 1
+
+        # If video is less than or equal to 64MB, upload as whole
+        if video_size <= self.MAX_CHUNK_SIZE:
+            return video_size, 1
+
+        # For larger videos, calculate chunks
+        chunk_size = self.DEFAULT_CHUNK_SIZE
+        total_chunk_count = math.ceil(video_size / chunk_size)
+
+        # Ensure we don't exceed 1000 chunks limit
+        if total_chunk_count > 1000:
+            chunk_size = math.ceil(video_size / 1000)
+            # Ensure chunk_size is at least 5MB
+            if chunk_size < self.MIN_CHUNK_SIZE:
+                chunk_size = self.MIN_CHUNK_SIZE
+            total_chunk_count = math.ceil(video_size / chunk_size)
+
+        return chunk_size, total_chunk_count
+
+    def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
+
+        tiktok_settings = TikTokPostModel.objects.filter(
+            post_id=post_id, account_id=account_id
+        ).get()
+
+        video_size = os.path.getsize(media_path)
+        chunk_size, total_chunk_count = self.calculate_chunks(video_size)
 
         init_upload_response = requests.post(
             url=f"{self.base_url}/post/publish/video/init/",
@@ -103,9 +128,9 @@ class TikTokPoster:
                 },
                 "source_info": {
                     "source": "FILE_UPLOAD",
-                    "video_size": video_size_bytes,
-                    "chunk_size": 10000000,
-                    "total_chunk_count": 5,
+                    "video_size": video_size,
+                    "chunk_size": chunk_size,
+                    "total_chunk_count": total_chunk_count,
                 },
             },
         )
@@ -115,12 +140,6 @@ class TikTokPoster:
         init_upload = init_upload_response.json()
         publish_id = init_upload["data"]["publish_id"]
         upload_url = init_upload["data"]["upload_url"]
-
-
-
-
-
-
 
 
 
@@ -149,12 +168,7 @@ async def post_on_tiktok(
         try:
             poster = TikTokPoster(integration)
             poster.get_creator_info()  # Raise error if user can't post
-            post_url = poster.make_post(
-                account_id,
-                post_id,
-                post_text, 
-                media_path
-            )
+            post_url = poster.make_post(account_id, post_id, post_text, media_path)
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e
