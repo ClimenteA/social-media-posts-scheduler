@@ -1,4 +1,5 @@
 import os
+import time
 import math
 import ffmpeg
 import requests
@@ -102,11 +103,10 @@ class TikTokPoster:
             total_chunk_count = math.ceil(video_size / chunk_size)
 
         return chunk_size, total_chunk_count
-    
 
     def get_video_duration(self, media_path: str) -> int:
         try:
-            
+
             # Probe the video file to get metadata
             probe = ffmpeg.probe(media_path)
 
@@ -147,7 +147,9 @@ class TikTokPoster:
             log.error(f"Failed to parse video metadata: {e}")
             raise ValueError(f"Invalid video file or corrupted metadata: {e}")
 
-    def initialize_upload(self, account_id: int, post_id: int, post_text: str, media_path: str):
+    def initialize_upload(
+        self, account_id: int, post_id: int, post_text: str, media_path: str
+    ):
 
         tiktok_settings = TikTokPostModel.objects.filter(
             post_id=post_id, account_id=account_id
@@ -186,23 +188,83 @@ class TikTokPoster:
         publish_id = init_upload["data"]["publish_id"]
         upload_url = init_upload["data"]["upload_url"]
 
-        return publish_id, upload_url
+        return publish_id, upload_url, video_size
 
+    def upload_file(
+        self,
+        media_path: str,
+        video_size: int,
+        upload_url: str,
+        publish_id: str,
+        account_id: int,
+    ):
+
+        with open(media_path, "rb") as file:
+
+            upload_response = requests.put(
+                url=upload_url,
+                headers={
+                    "Content-Range": f"bytes 0-{video_size - 1}/{video_size}",
+                    "Content-Type": "video/mp4",
+                },
+                data=file,
+            )
+            upload_response.raise_for_status()
+
+        # 3600/5=720 - tiktok timeouts video upload after 1 hour
+        for _ in range(720):
+            time.sleep(5)
+
+            upload_status_response = requests.post(
+                url=f"{self.base_url}/post/publish/status/fetch/",
+                headers=self.headers,
+                json={"publish_id": publish_id},
+            )
+            log.debug(upload_status_response.json())
+            upload_status_response.raise_for_status()
+            upload_status = upload_status_response.json()["data"]["status"]
+
+            if upload_status == "FAILED":
+                upload_error = upload_status_response.json()["data"]["error"]["message"]
+                raise Exception(
+                    f"Failed to upload video on tiktok for AccountID: {account_id}. Got {upload_error}"
+                )
+
+            if upload_status == "PUBLISH_COMPLETE":
+                break
+
+        return upload_status
 
     def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
 
         creator_info = self.get_creator_info()
         video_duration = self.get_video_duration(media_path)
         if video_duration > creator_info["max_video_post_duration_sec"]:
-            raise ValueError(f"Maximum video duration allowed for account id: {account_id} is {creator_info['max_video_post_duration_sec']} seconds")
+            raise ValueError(
+                f"Maximum video duration allowed for account id: {account_id} is {creator_info['max_video_post_duration_sec']} seconds"
+            )
 
-        publish_id, upload_url = self.initialize_upload(account_id, post_id, post_text, media_path)
+        publish_id, upload_url, video_size = self.initialize_upload(
+            account_id, post_id, post_text, media_path
+        )
+        self.upload_file(media_path, video_size, upload_url, publish_id, account_id)
 
-        
+        return f"https://www.tiktok.com/@{creator_info['creator_nickname']}"
 
+        # TODO not working Get video url
+        # time.sleep(10)
+        # video_list_response = requests.post(
+        #     url=f"{self.base_url}/video/list/?fields=id",
+        #     headers=self.headers,
+        #     json={"max_count": 20},
+        #     allow_redirects=True
+        # )
+        # log.debug(video_list_response.json())
+        # video_list_response.raise_for_status()
 
-
-
+        # video_list_response.json()
+        # Video url should be like 
+        # https://www.tiktok.com/@developeralin/video/7515715473732816161
 
 
 @sync_to_async
