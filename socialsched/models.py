@@ -40,8 +40,14 @@ class TextMaxLength(IntEnum):
     LINKEDIN = 3000
 
 
-def get_filename(_, filename: str):
-    return uuid.uuid4().hex + filename.lower()
+
+class MediaFileTypes(models.TextChoices):
+    VIDEO = "VIDEO", _("video")
+    IMAGE = "IMAGE", _("image")
+
+
+def get_filename(instance, filename):
+    return f"{instance.account_id}/{uuid.uuid4().hex}_{filename.lower()}"
 
 
 class PostModel(models.Model):
@@ -57,6 +63,7 @@ class PostModel(models.Model):
         null=True,
         blank=True,
     )
+    media_file_type = models.CharField(max_length=50, blank=True, null=True, choices=MediaFileTypes)
     process_image = models.BooleanField(blank=True, null=True, default=False)
     
     post_on_x = models.BooleanField(blank=True, null=True, default=False)
@@ -80,11 +87,11 @@ class PostModel(models.Model):
 
     @property
     def has_video(self):
-        return self.media_file and self.media_file.path.lower().endswith('.mp4')
+        return self.media_file_type == MediaFileTypes.VIDEO.value
     
     @property
     def has_image(self):
-        return self.media_file and self.media_file.path.lower().endswith((".jpeg", ".jpg", ".png"))
+        return self.media_file_type == MediaFileTypes.IMAGE.value
     
     def save(self, *args, **kwargs):
 
@@ -115,7 +122,11 @@ class PostModel(models.Model):
 
         if self.media_file:
             ext = os.path.splitext(self.media_file.name)[1].lower()
-            if ext not in [".jpeg", ".jpg", ".png", ".mp4"]:
+            if ext == ".mp4":
+                self.media_file_type = MediaFileTypes.VIDEO.value
+            elif ext in [".jpeg", ".jpg", ".png"]:
+                self.media_file_type = MediaFileTypes.IMAGE.value
+            else:
                 raise ValueError(
                     "Unsupported file type. Only JPEG, PNG images and MP4 videos are allowed."
                 )

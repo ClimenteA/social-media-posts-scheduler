@@ -3,9 +3,9 @@ import uuid
 import shutil
 import textwrap
 from pathlib import Path
+from core import settings
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from core.logger import log, send_notification
-from core.settings import MEDIA_ROOT
 from .pexels import get_relevant_image_for_text
 
 
@@ -90,7 +90,7 @@ def create_image_from_text(
     text_color: str = "white",
 ):
     if image_path is None:
-        image_path = os.path.join(MEDIA_ROOT, f"{uuid.uuid4()}.png")
+        image_path = os.path.join(settings.MEDIA_ROOT, f"{uuid.uuid4()}.png")
 
     font_path = Path(__file__).parent / "Inter_28pt-SemiBold.ttf"
     font = ImageFont.truetype(font_path, font_size)

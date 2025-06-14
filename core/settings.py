@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
+    "storages",
 ]
 
 
@@ -135,6 +136,32 @@ USE_I18N = True
 
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Media files
+CLOUDFLARE_R2_BUCKET=os.getenv("CLOUDFLARE_R2_BUCKET")
+CLOUDFLARE_R2_BUCKET_ENDPOINT=os.getenv("CLOUDFLARE_R2_BUCKET_ENDPOINT")
+CLOUDFLARE_R2_ACCESS_KEY=os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
+CLOUDFLARE_R2_SECRET_KEY=os.getenv("CLOUDFLARE_R2_SECRET_KEY")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "core.storages.MediaFileStorage",
+        "OPTIONS": {
+            "bucket_name": CLOUDFLARE_R2_BUCKET,
+            "default_acl": "public-read",  # or "private"
+            "signature_version": "s3v4",
+            "endpoint_url": CLOUDFLARE_R2_BUCKET_ENDPOINT,
+            "access_key": CLOUDFLARE_R2_ACCESS_KEY,
+            "secret_key": CLOUDFLARE_R2_SECRET_KEY,
+        }
+    },
+     "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    }
+}
+
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -144,10 +171,9 @@ WHITENOISE_USE_FINDERS = True
 os.makedirs(STATIC_ROOT, exist_ok=True)
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = None
+MEDIA_ROOT = None
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Database
 

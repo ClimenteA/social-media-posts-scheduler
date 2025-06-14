@@ -60,7 +60,7 @@ class TikTokPoster:
         creator_info_url = f"{self.base_url}/post/publish/creator_info/query/"
 
         response = requests.post(creator_info_url, headers=self.headers)
-        log.debug(f"Tiktok creator info response: {response.json()}")
+        # log.debug(f"Tiktok creator info response: {response.json()}")
         response.raise_for_status()
         data = response.json()
 
@@ -181,7 +181,7 @@ class TikTokPoster:
                 },
             },
         )
-        log.debug(init_upload_response.json())
+        # log.debug(init_upload_response.json())
         init_upload_response.raise_for_status()
 
         init_upload = init_upload_response.json()
@@ -220,7 +220,7 @@ class TikTokPoster:
                 headers=self.headers,
                 json={"publish_id": publish_id},
             )
-            log.debug(upload_status_response.json())
+            # log.debug(upload_status_response.json())
             upload_status_response.raise_for_status()
             upload_status = upload_status_response.json()["data"]["status"]
 
