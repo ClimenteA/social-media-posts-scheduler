@@ -11,12 +11,18 @@ from .platforms.facebook import post_on_facebook
 from .platforms.instagram import post_on_instagram
 from .platforms.tiktok import post_on_tiktok
 from .platforms.refresh_tokens import refresh_tokens
+from .platforms.process_images import process_images
+from .platforms.process_videos import process_videos
 
 
 def post_scheduled_posts():
 
+    # Ensure tokens, images, and videos are read to upload
     refresh_tokens()
+    process_images()
+    process_videos()
 
+    # Publish posts
     potential_posts = PostModel.objects.filter(
         Q(post_on_x=True)
         | Q(post_on_instagram=True)

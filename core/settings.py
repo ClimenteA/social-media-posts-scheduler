@@ -13,10 +13,7 @@ load_dotenv(BASE_DIR / ".env")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    default="django-insecure-@ur(_!x(@5ps_lvfpe&myyzg=q3+x3-7hio(s2m=!p)uzw8#oj",
-)
+SECRET_KEY = os.environ["SECRET_KEY"]
 NOTIFICATION_API_KEY = os.getenv("NOTIFICATION_API_KEY")
 NOTIFICATION_API_URL = os.getenv("NOTIFICATION_API_URL")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")

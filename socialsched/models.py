@@ -47,7 +47,8 @@ class MediaFileTypes(models.TextChoices):
 
 
 def get_filename(instance, filename):
-    return f"{instance.account_id}/{uuid.uuid4().hex}_{filename.lower()}"
+    ext = os.path.splitext(filename)[1].lower()
+    return f"{instance.account_id}/{uuid.uuid4().hex}{ext}"
 
 
 class PostModel(models.Model):

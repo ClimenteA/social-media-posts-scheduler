@@ -8,7 +8,6 @@ from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
 from integrations.utils import get_tiktok_creator_info
-from .image_processor.instagram_image import make_instagram_image
 from .models import PostModel, TikTokPostModel
 from .forms import PostForm, TikTokForm
 from .schedule_utils import (
@@ -206,18 +205,6 @@ def schedule_save(request, isodate):
         post.account_id = social_uid
         post.save()
 
-        if post.process_image:
-            if (
-                post.media_file
-                and hasattr(post.media_file, "path")
-                and post.media_file.path
-            ):
-                make_instagram_image(post.media_file.path, post.description)
-            else:
-                post.media_file = make_instagram_image(None, post.description)
-
-            post.save()
-
         if post.post_on_tiktok:
             messages.add_message(
                 request,
@@ -235,6 +222,7 @@ def schedule_save(request, isodate):
             )
             return redirect(f"/schedule/{isodate}/")
     except Exception as err:
+        log.exception(err)
         messages.add_message(
             request,
             messages.ERROR,
@@ -327,6 +315,7 @@ def tiktok_settings_save(request, isodate: str, post_id: int):
         )
         return redirect(f"/schedule/{isodate}/")
     except Exception as err:
+        log.exception(err)
         messages.add_message(
             request,
             messages.ERROR,

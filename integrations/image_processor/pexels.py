@@ -48,7 +48,7 @@ def get_relevant_image_for_text(text: str):
         img_response = requests.get(photo_url)
         img_response.raise_for_status()
 
-        image_path = os.path.join(settings.MEDIA_ROOT, f"{uuid.uuid4()}.png")
+        image_path = f"/tmp/{uuid.uuid4().hex}.png"
         with open(image_path, "wb") as f:
             f.write(img_response.content)
 

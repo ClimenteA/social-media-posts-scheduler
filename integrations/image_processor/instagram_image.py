@@ -1,9 +1,9 @@
 import os
 import uuid
 import shutil
+import tempfile
 import textwrap
 from pathlib import Path
-from core import settings
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from core.logger import log, send_notification
 from .pexels import get_relevant_image_for_text
@@ -90,8 +90,9 @@ def create_image_from_text(
     text_color: str = "white",
 ):
     if image_path is None:
-        image_path = os.path.join(settings.MEDIA_ROOT, f"{uuid.uuid4()}.png")
-
+        temp_dir = tempfile.mkdtemp()
+        image_path = os.path.join(temp_dir, f"{uuid.uuid4()}.png")
+    
     font_path = Path(__file__).parent / "Inter_28pt-SemiBold.ttf"
     font = ImageFont.truetype(font_path, font_size)
 
@@ -193,7 +194,7 @@ def create_image(*, image_path: str = None, text: str = None):
 def make_instagram_image(image_path: str = None, text: str = None):
     try:
         created_image_path = create_image(image_path=image_path, text=text)
-        return os.path.basename(created_image_path)
+        return created_image_path
     except Exception as err:
         log.exception(err)
         send_notification(email="ImPosting", message=str(err))
