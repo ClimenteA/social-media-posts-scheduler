@@ -65,7 +65,11 @@ class PostModel(models.Model):
         blank=True,
     )
     media_file_type = models.CharField(max_length=50, blank=True, null=True, choices=MediaFileTypes)
+    
     process_image = models.BooleanField(blank=True, null=True, default=False)
+    process_video = models.BooleanField(blank=True, null=True, default=False)
+    image_processed = models.BooleanField(blank=True, null=True, default=False)
+    video_processed = models.BooleanField(blank=True, null=True, default=False)
     
     post_on_x = models.BooleanField(blank=True, null=True, default=False)
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
@@ -144,6 +148,12 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a X post is {TextMaxLength.X_BLUE}"
                 )
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext not in [".jpeg", ".jpg", ".png"]:
+                    raise ValueError(
+                        "Unsupported file type. Only JPEG, PNG images can be uploaded to X."
+                    )
 
         if self.post_on_instagram:
             ig_ok = IntegrationsModel.objects.filter(
@@ -183,6 +193,13 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a LinkedIn post is {TextMaxLength.LINKEDIN}"
                 )
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext not in [".jpeg", ".jpg", ".png"]:
+                    raise ValueError(
+                        "Unsupported file type. Only JPEG, PNG images can be uploaded to LinkedIn."
+                    )
+
             
         if self.post_on_tiktok:
             tk_ok = IntegrationsModel.objects.filter(
@@ -192,6 +209,13 @@ class PostModel(models.Model):
                 raise ValueError(
                     "Please got to Integrations and authorize TikTok app"
                 )
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext != ".mp4":
+                    raise ValueError(
+                        "Unsupported file type. Only .mp4 videos can be uploaded to TikTok."
+                    )
+
         
         super().save(*args, **kwargs)
 

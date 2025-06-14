@@ -28,6 +28,7 @@ def post_scheduled_posts():
         | Q(post_on_instagram=True)
         | Q(post_on_facebook=True)
         | Q(post_on_linkedin=True)
+        | Q(post_on_tiktok=True)
     ).only("pk", "scheduled_on", "post_timezone")
 
     post_ids_to_publish = []

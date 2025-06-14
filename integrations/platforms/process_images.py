@@ -15,12 +15,14 @@ def process_images():
 
         posts: list[PostModel] = PostModel.objects.filter(
             process_image = True,
+            image_processed = False,
             media_file_type = MediaFileTypes.IMAGE.value,
         ).filter(
             Q(post_on_x=True)
             | Q(post_on_instagram=True)
             | Q(post_on_facebook=True)
             | Q(post_on_linkedin=True)
+            | Q(post_on_tiktok=True)
         ).only("pk", "account_id", "description", "media_file")
 
         for post in posts:
@@ -39,7 +41,7 @@ def process_images():
 
                 with open(image_path, "rb") as f:
                     post.media_file = File(f)
-                    post.process_image = False
+                    post.image_processed = True
                     post.save(skip_validation=True)
 
                 os.remove(image_path)
@@ -50,4 +52,4 @@ def process_images():
 
     except Exception as err:
         log.exception(err)
-        send_notification("ImPosting", f"Got error on prcessing images {err}")
+        send_notification("ImPosting", f"Got error on processing images {err}")

@@ -35,6 +35,7 @@ class PostForm(forms.ModelForm):
             "media_file",
             "post_timezone",
             "process_image",
+            "process_video",
         ]
 
         widgets = {
@@ -47,4 +48,5 @@ class PostForm(forms.ModelForm):
             "post_on_tiktok": forms.CheckboxInput(),
             "post_on_linkedin": forms.CheckboxInput(),
             "process_image": forms.CheckboxInput(attrs={"role":"switch"}),
+            "process_video": forms.CheckboxInput(attrs={"role":"switch"}),
         }
