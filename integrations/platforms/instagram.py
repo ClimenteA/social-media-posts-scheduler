@@ -5,7 +5,7 @@ from core.logger import log, send_notification
 from dataclasses import dataclass
 from asgiref.sync import sync_to_async
 from integrations.models import IntegrationsModel, Platform
-from socialsched.models import PostModel
+from socialsched.models import PostModel, MediaFileTypes
 from .common import (
     get_integration,
     ErrorAccessTokenNotProvided,
@@ -117,17 +117,16 @@ class InstagramPoster:
         return self.get_post_url(publish_response.json()["id"])
 
 
-    def make_post(self, text: str, media_url: str = None, media_path: str = None):
+    def make_post(self, text: str, media_type: str, media_url: str = None, media_path: str = None):
         if media_url is None:
             log.info("No media for instagram post. Skip posting.")
             return
 
-        if media_url:
-            if media_url.endswith((".jpg", ".jpeg", ".png")):
-                return self.post_text_with_image(text, media_url)
+        if media_type == MediaFileTypes.IMAGE.value:
+            return self.post_text_with_image(text, media_url)
 
-            if media_url.endswith(".mp4"):
-                return self.post_text_with_reel(text, media_url, media_path)
+        if media_type == MediaFileTypes.VIDEO.value:
+            return self.post_text_with_reel(text, media_url, media_path)
 
         raise ErrorThisTypeOfPostIsNotSupported
 
@@ -145,6 +144,7 @@ async def post_on_instagram(
     account_id: int,
     post_id: int,
     post_text: str,
+    media_type: str,
     media_url: str = None,
     media_path: str = None,
 ):
@@ -159,7 +159,7 @@ async def post_on_instagram(
     if integration:
         try:
             poster = InstagramPoster(integration)
-            post_url = poster.make_post(post_text, media_url, media_path)
+            post_url = poster.make_post(post_text, media_type, media_url, media_path)
             log.success(f"Instagram post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e

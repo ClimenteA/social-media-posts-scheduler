@@ -1,10 +1,11 @@
+import os
 import asyncio
-from core import settings
 from core.logger import log
 from django.db.models import Q
 from django.utils import timezone
 from socialsched.models import PostModel
 from zoneinfo import ZoneInfo
+from .utils import get_filepath_from_cloudflare_url
 from .platforms.linkedin import post_on_linkedin
 from .platforms.xtwitter import post_on_x
 from .platforms.facebook import post_on_facebook
@@ -50,11 +51,11 @@ def post_scheduled_posts():
 
         for post in posts:
             text = post.description
-            media_path = post.media_file.path if post.media_file else None
-            media_object = post.media_file if post.media_file else None
+            media_type = post.media_file_type
+            media_path = get_filepath_from_cloudflare_url(post.media_file.url)
             media_url = None
-            if media_object:
-                media_url = settings.APP_URL + media_object.url
+            if post.media_file:
+                media_url = post.media_file.url
 
             # LINKEDIN
             if post.post_on_linkedin:
@@ -66,16 +67,15 @@ def post_scheduled_posts():
 
             # FACEBOOK
             if post.post_on_facebook:
-                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_url, media_path))
+                async_tasks.append(post_on_facebook(post.account_id, post.id, text, media_type, media_url, media_path))
 
             # INSTAGRAM
             if post.post_on_instagram:
-                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_url, media_path))
+                async_tasks.append(post_on_instagram(post.account_id, post.id, text, media_type, media_url, media_path))
 
             # TIKTOK
             if post.post_on_tiktok:
                 async_tasks.append(post_on_tiktok(post.account_id, post.id, text, media_path))
-
 
         log.debug(f"Gathered async tasks {len(async_tasks)} to run.")
         return await asyncio.gather(*async_tasks)

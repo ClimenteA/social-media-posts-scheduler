@@ -1,12 +1,10 @@
 import os
-import uuid
-import requests
 from django.db.models import Q
 from django.core.files import File
 from core.logger import log, send_notification
 from socialsched.models import PostModel, MediaFileTypes
 from integrations.image_processor.make_image_postable import make_image_postable
-
+from integrations.utils import get_filepath_from_cloudflare_url
 
 
 
@@ -27,16 +25,7 @@ def process_images():
 
         for post in posts:
             try:
-
-                ext = os.path.splitext(post.media_file.url)[1].lower()
-                ext = ext.split("?")[0]
-                img_response = requests.get(post.media_file.url)
-                img_response.raise_for_status()
-
-                image_path = f"/tmp/{uuid.uuid4().hex}{ext}"
-                with open(image_path, "wb") as f:
-                    f.write(img_response.content)
-
+                image_path = get_filepath_from_cloudflare_url(post.media_file.url)
                 image_path = make_image_postable(image_path, post.description)
 
                 with open(image_path, "rb") as f:

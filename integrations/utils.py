@@ -1,3 +1,5 @@
+import os
+import uuid
 import base64
 import requests
 from .models import IntegrationsModel, Platform
@@ -20,6 +22,21 @@ def image_url_to_base64(url: str) -> str | None:
         return url
 
 
+def get_filepath_from_cloudflare_url(url: str, ):
+
+    ext = os.path.splitext(url)[1].lower()
+    ext = ext.split("?")[0]
+
+    response = requests.get(url)
+    response.raise_for_status()
+
+    filepath = f"/tmp/{uuid.uuid4().hex}{ext}"
+    with open(filepath, "wb") as f:
+        f.write(response.content)
+
+    return filepath
+
+
 def get_tiktok_creator_info(account_id: int):
 
     integration = IntegrationsModel.objects.filter(
@@ -27,13 +44,8 @@ def get_tiktok_creator_info(account_id: int):
     ).first()
 
     if not integration:
-        return 
-    
+        return
+
     poster = TikTokPoster(integration)
 
     return poster.get_creator_info()
-
-    
-
-
-

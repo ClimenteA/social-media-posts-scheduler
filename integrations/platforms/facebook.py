@@ -6,7 +6,7 @@ from core.logger import log, send_notification
 from asgiref.sync import sync_to_async
 from dataclasses import dataclass
 from integrations.models import IntegrationsModel, Platform
-from socialsched.models import PostModel
+from socialsched.models import PostModel, MediaFileTypes
 from .common import (
     get_integration,
     ErrorAccessTokenNotProvided,
@@ -59,7 +59,6 @@ class FacebookPoster:
         response.raise_for_status()
         return self.get_post_url(response.json()["id"])
 
-
     def post_text_with_reel(self, text: str, reel_path: str):
 
         # Get upload url
@@ -76,7 +75,7 @@ class FacebookPoster:
         video_id = upload_start_data["video_id"]
 
         file_size_bytes = os.path.getsize(reel_path)
-        file_size_mb = file_size_bytes / (1024 * 1024) 
+        file_size_mb = file_size_bytes / (1024 * 1024)
 
         # Upload reel
         with open(reel_path, "rb") as file:
@@ -117,12 +116,16 @@ class FacebookPoster:
             # Check processing/publishing status directly
             processing = status_data.get("processing_phase", {}).get("status")
             publishing = status_data.get("publishing_phase", {}).get("status")
-            
+
             if processing == "complete" and publishing == "complete":
                 break  # Success!
-            elif status_data.get("video_status") in ["error", "expired", "upload_failed"]:
+            elif status_data.get("video_status") in [
+                "error",
+                "expired",
+                "upload_failed",
+            ]:
                 raise Exception(f"Reel processing failed: {video_id}")
-            
+
             time.sleep(5)
         else:
             raise Exception("Reel processing timed out")
@@ -141,7 +144,6 @@ class FacebookPoster:
 
         return f"https://facebook.com{reel_link}"
 
-
     def post_text_with_image(self, text: str, image_url: str):
         payload = {
             "message": text,
@@ -154,7 +156,9 @@ class FacebookPoster:
 
         return self.get_post_url(response.json()["post_id"])
 
-    def make_post(self, text: str, media_url: str = None, media_path: str = None):
+    def make_post(
+        self, text: str, media_type: str, media_url: str = None, media_path: str = None
+    ):
         if media_url is None and media_path is None:
             pattern = r"(https?://[^\s]+)$"
             match = re.search(pattern, text)
@@ -163,14 +167,12 @@ class FacebookPoster:
                 return self.post_text_with_link(text, link)
             return self.post_text(text)
 
-        if media_url:
-            if media_url.endswith((".jpg", ".jpeg", ".png")):
-                return self.post_text_with_image(text, media_url)
+        if media_type == MediaFileTypes.IMAGE.value:
+            return self.post_text_with_image(text, media_url)
 
-        if media_path:
-            if media_path.endswith(".mp4"):
-                return self.post_text_with_reel(text, media_path)
-        
+        if media_type == MediaFileTypes.VIDEO.value:
+            return self.post_text_with_reel(text, media_path)
+
         raise ErrorThisTypeOfPostIsNotSupported
 
 
@@ -187,6 +189,7 @@ async def post_on_facebook(
     account_id: int,
     post_id: int,
     post_text: str,
+    media_type: str,
     media_url: str = None,
     media_path: str = None,
 ):
@@ -199,7 +202,7 @@ async def post_on_facebook(
     if integration:
         try:
             poster = FacebookPoster(integration)
-            post_url = poster.make_post(post_text, media_url, media_path)
+            post_url = poster.make_post(post_text, media_type, media_url, media_path)
             log.success(f"Facebook post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e
