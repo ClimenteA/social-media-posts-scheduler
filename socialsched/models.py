@@ -21,7 +21,9 @@ class TikTokPostModel(models.Model):
     account_id = models.IntegerField()
     nickname = models.CharField(max_length=1000)
     max_video_post_duration_sec = models.IntegerField()
-    privacy_level_options = models.CharField(max_length=1000, choices=PrivacyLevelOptions)
+    privacy_level_options = models.CharField(
+        max_length=1000, choices=PrivacyLevelOptions
+    )
     allow_comment = models.BooleanField(blank=True, default=None)
     allow_duet = models.BooleanField(blank=True, default=None)
     allow_stitch = models.BooleanField(blank=True, default=None)
@@ -31,14 +33,12 @@ class TikTokPostModel(models.Model):
     ai_generated = models.BooleanField()
 
 
-
 class TextMaxLength(IntEnum):
     X_FREE = 280
     X_BLUE = 4000
     INSTAGRAM = 2200
     FACEBOOK = 63206
     LINKEDIN = 3000
-
 
 
 class MediaFileTypes(models.TextChoices):
@@ -64,19 +64,21 @@ class PostModel(models.Model):
         null=True,
         blank=True,
     )
-    media_file_type = models.CharField(max_length=50, blank=True, null=True, choices=MediaFileTypes)
-    
-    process_image = models.BooleanField(blank=True, null=True, default=False)
-    process_video = models.BooleanField(blank=True, null=True, default=False)
+    media_file_type = models.CharField(
+        max_length=50, blank=True, null=True, choices=MediaFileTypes
+    )
+
+    process_image = models.BooleanField(blank=True, null=True, default=True)
+    process_video = models.BooleanField(blank=True, null=True, default=True)
     image_processed = models.BooleanField(blank=True, null=True, default=False)
     video_processed = models.BooleanField(blank=True, null=True, default=False)
-    
+
     post_on_x = models.BooleanField(blank=True, null=True, default=False)
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
     post_on_facebook = models.BooleanField(blank=True, null=True, default=False)
     post_on_linkedin = models.BooleanField(blank=True, null=True, default=False)
     post_on_tiktok = models.BooleanField(blank=True, null=True, default=False)
-    
+
     link_x = models.CharField(max_length=50000, blank=True, null=True)
     link_instagram = models.CharField(max_length=50000, blank=True, null=True)
     link_facebook = models.CharField(max_length=50000, blank=True, null=True)
@@ -89,15 +91,14 @@ class PostModel(models.Model):
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
     error_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
-
     @property
     def has_video(self):
         return self.media_file_type == MediaFileTypes.VIDEO.value
-    
+
     @property
     def has_image(self):
         return self.media_file_type == MediaFileTypes.IMAGE.value
-    
+
     def save(self, *args, **kwargs):
 
         skip_validation = kwargs.pop("skip_validation", False)
@@ -167,6 +168,8 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a Instagram post is {TextMaxLength.INSTAGRAM}"
                 )
+            if not self.media_file:
+                raise ValueError("An image or a video is required for Instagram.")
 
         if self.post_on_facebook:
             fb_ok = IntegrationsModel.objects.filter(
@@ -200,23 +203,22 @@ class PostModel(models.Model):
                         "Unsupported file type. Only JPEG, PNG images can be uploaded to LinkedIn."
                     )
 
-            
         if self.post_on_tiktok:
             tk_ok = IntegrationsModel.objects.filter(
                 account_id=self.account_id, platform=Platform.TIKTOK.value
             ).first()
             if not tk_ok:
-                raise ValueError(
-                    "Please got to Integrations and authorize TikTok app"
-                )
+                raise ValueError("Please got to Integrations and authorize TikTok app")
+
             if self.media_file:
                 ext = os.path.splitext(self.media_file.name)[1].lower()
                 if ext != ".mp4":
                     raise ValueError(
                         "Unsupported file type. Only .mp4 videos can be uploaded to TikTok."
                     )
+            else:
+                raise ValueError("A .mp4 video in reel format is needed for TikTok.")
 
-        
         super().save(*args, **kwargs)
 
     class Meta:
