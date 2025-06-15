@@ -191,7 +191,7 @@ def create_image(*, image_path: str = None, text: str = None):
     raise Exception("Image, text or both must be provided!")
 
 
-def make_instagram_image(image_path: str = None, text: str = None):
+def make_image_postable(image_path: str = None, text: str = None):
     try:
         created_image_path = create_image(image_path=image_path, text=text)
         return created_image_path

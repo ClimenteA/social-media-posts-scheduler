@@ -45,14 +45,16 @@ def calendar(request):
         account_id=social_uid, scheduled_on__year=selected_year
     ).values(
         "scheduled_on",
-        "post_on_x",
         "post_on_instagram",
         "post_on_facebook",
+        "post_on_tiktok",
         "post_on_linkedin",
-        "link_x",
+        "post_on_x",
         "link_instagram",
         "link_facebook",
+        "link_tiktok",
         "link_linkedin",
+        "link_x",
     )
 
     year_dates = get_year_dates(selected_year)

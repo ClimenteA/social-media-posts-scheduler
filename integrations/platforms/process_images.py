@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.core.files import File
 from core.logger import log, send_notification
 from socialsched.models import PostModel, MediaFileTypes
-from integrations.image_processor.instagram_image import make_instagram_image
+from integrations.image_processor.make_image_postable import make_image_postable
 
 
 
@@ -37,7 +37,7 @@ def process_images():
                 with open(image_path, "wb") as f:
                     f.write(img_response.content)
 
-                image_path = make_instagram_image(image_path, post.description)
+                image_path = make_image_postable(image_path, post.description)
 
                 with open(image_path, "rb") as f:
                     post.media_file = File(f)

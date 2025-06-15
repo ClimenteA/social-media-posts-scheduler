@@ -102,7 +102,7 @@
                 <span>|</span>
 
                 <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Process image">
-                    <i class="bi bi-image-fill"></i>
+                    <i class="bi bi-camera-fill"></i>
                     {{ post_form.process_image }}
                     {{ post_form.process_image.errors }}
                 </label>
@@ -114,6 +114,21 @@
                 </label>
 
             </div>
+
+
+            <div style="display: flex; flex-direction: column; font-size: 12px;">
+                <small class="pico-color-slate-450">
+                    <i class="bi bi-camera-fill"></i>
+                    Process image - if checked we'll make sure image has the right size to be posted (1080x1350px).
+                    If only text is available it will create an image from that text with a blurred background image.
+                </small>
+                
+                <small class="pico-color-slate-450">
+                    <i class="bi bi-camera-reels-fill"></i>
+                    Process video - if checked we'll make sure video has the right size to be posted (ratio 9:16 with 1080x1920px and 60 seconds length).
+                </small>
+            </div>
+
             
         </div>
 
@@ -167,7 +182,10 @@
         <small x-show="loading" aria-busy="true">Saving post...</small>
 
     </form>
+
 </article>
+
+
 
 {% else %}
 

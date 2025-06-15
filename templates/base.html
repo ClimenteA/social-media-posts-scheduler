@@ -1,7 +1,7 @@
 {% load django_browser_reload %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" x-data="themeSwitch()" x-init="initTheme()" :data-theme="theme">
 
 <head>
     <meta charset="UTF-8">
@@ -48,10 +48,16 @@
                     <strong>IP</strong>
                 </a>
             </li>
+            <li>
+                <i x-cloak x-show="theme === 'dark'" @click="toggleTheme" class="bi bi-sun-fill"></i>
+                <i x-cloak x-show="theme === 'light'" @click="toggleTheme" class="bi bi-moon-stars-fill"></i>
+            </li>
         </ul>
 
         <ul>
+
             {% if user.is_authenticated %}
+                    
             <li>
                 <a href="{% url 'calendar' %}">
                     Calendar
@@ -80,6 +86,28 @@
         {% endblock %}
 
     </main>
+
+
+
+    <script>
+        function themeSwitch() {
+            return {
+                theme: localStorage.getItem('theme') || 'dark',
+
+                initTheme() {
+                    this.$watch('theme', value => {
+                        localStorage.setItem('theme', value);
+                        document.documentElement.setAttribute('data-theme', value);
+                    });
+                    document.documentElement.setAttribute('data-theme', this.theme);
+                },
+
+                toggleTheme() {
+                    this.theme = (this.theme === 'dark') ? 'light' : 'dark';
+                }
+            }
+        }
+    </script>
 
 
     {% if messages %}
