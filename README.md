@@ -1,4 +1,3 @@
-
 <div align="center">
   <strong>
   <h2>A Simple (no fluff) Social Media Posts Scheduler</h2><br />
@@ -102,6 +101,16 @@ Shortcut make commands:
 - For Oauth2 select the following scopes: openid, profile, w_member_social, email;
 - In Auth tab set the callback url: https://ngrok-or-prod-url.app/linkedin/callback/;
 - Update .env file with Client ID (LINKEDIN_CLIENT_ID) and Primary Client Secret (LINKEDIN_CLIENT_SECRET);
+
+
+## TikTok
+
+- You'll need a business tiktok account to post via API;
+- Google [tiktok for developers](https://developers.tiktok.com/);
+- Create an app;
+- Add products Login Kit and Content Posting API
+- In Login Kit set the callback url: https://ngrok-or-prod-url.app/tiktok/callback/;
+- Add your tiktok account in Target Users for testing;
 
 
 ## Screenshots

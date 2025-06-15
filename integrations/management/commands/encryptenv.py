@@ -1,5 +1,5 @@
 from core.logger import log, BASE_DIR
-from integrations.aes import AESCBC
+from integrations.helpers.aes import AESCBC
 from django.core.management.base import BaseCommand
 
 

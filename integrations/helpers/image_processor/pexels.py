@@ -1,10 +1,9 @@
-import os
 import re
 import uuid
 import random
 import requests
 from collections import Counter
-from core.settings import PEXELS_API_KEY, MEDIA_ROOT
+from core import settings
 from core.logger import log, send_notification
 
 
@@ -24,7 +23,7 @@ def get_relevant_image_for_text(text: str):
         # Step 2: Fetch images from Pexels
         response = requests.get(
             f"https://api.pexels.com/v1/search?query={query}&per_page=9",
-            headers={"Authorization": PEXELS_API_KEY},
+            headers={"Authorization": settings.PEXELS_API_KEY},
         )
         response.raise_for_status()
         photos = response.json()["photos"]
@@ -48,7 +47,7 @@ def get_relevant_image_for_text(text: str):
         img_response = requests.get(photo_url)
         img_response.raise_for_status()
 
-        image_path = os.path.join(MEDIA_ROOT, f"{uuid.uuid4()}.png")
+        image_path = f"/tmp/{uuid.uuid4().hex}.png"
         with open(image_path, "wb") as f:
             f.write(img_response.content)
 

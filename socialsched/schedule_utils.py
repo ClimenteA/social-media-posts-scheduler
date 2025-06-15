@@ -1,7 +1,6 @@
 from functools import lru_cache
 from datetime import date, timedelta
 
-
 @lru_cache(maxsize=None)
 def get_year_dates(year: int) -> list[date]:
     start_date = date(year, 1, 1)
@@ -18,9 +17,9 @@ def get_year_dates(year: int) -> list[date]:
 
 def get_initial_month_placeholder(today, d):
 
-    past_month_bg = "slate-800"
-    current_month_bg = "jade-650"
-    next_month_bg = "blue-850"
+    past_month_bg = "slate-650"
+    current_month_bg = "jade-600"
+    next_month_bg = "blue-750"
     light_text = "blue-50"
     dark_text = "blue-250"
 
@@ -50,6 +49,7 @@ def get_day_data(posts, d):
     post_on_instagram = 0
     post_on_facebook = 0
     post_on_linkedin = 0
+    post_on_tiktok = 0
     for post in posts:
 
         if post["scheduled_on"].date() != d:
@@ -64,6 +64,9 @@ def get_day_data(posts, d):
         )
         post_on_linkedin += (
             1 if post["post_on_linkedin"] or post["link_linkedin"] else 0
+        )
+        post_on_tiktok += (
+            1 if post["post_on_tiktok"] or post["link_tiktok"] else 0
         )
         posts_count += (
             1
@@ -90,4 +93,5 @@ def get_day_data(posts, d):
         "facebook_count": post_on_facebook,
         "linkedin_count": post_on_linkedin,
         "twitter_count": post_on_x,
+        "tiktok_count": post_on_tiktok,
     }
