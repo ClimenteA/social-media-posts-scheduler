@@ -1,7 +1,4 @@
 import os
-# import math
-# import ffmpeg
-# from typing import Tuple
 import webbrowser
 from core import settings
 from django.test import TestCase
@@ -12,7 +9,8 @@ from integrations.platforms.facebook import FacebookPoster
 from integrations.platforms.instagram import InstagramPoster
 from integrations.platforms.linkedin import LinkedinPoster
 from integrations.platforms.tiktok import TikTokPoster
-from integrations.platforms.refresh_tokens import refresh_access_token_for_tiktok
+from integrations.helpers.refresh_tokens import refresh_access_token_for_tiktok
+from integrations.helpers.video_processor.make_video_postable import make_video_postable
 
 
 
@@ -230,6 +228,16 @@ class TestPostingOnSocials(TestCase):
 
         refresh_access_token_for_tiktok(integration)
 
+
+    def test_make_video_postable(self):
+        # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_make_video_postable
+
+        video_path = "./static/imposting-video.mp4"
+        output_path = "./static/imposting-video-common.mp4"
+
+        make_video_postable(video_path, output_path)
+
+        
 
     # def test_make_reel_for_tiktok(self):
     #     # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_make_reel_for_tiktok

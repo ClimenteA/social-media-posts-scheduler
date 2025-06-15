@@ -1,20 +1,22 @@
+import os
 import asyncio
 from core.logger import log
+from core import settings
 from django.db.models import Q
 from django.utils import timezone
 from socialsched.models import PostModel
 from zoneinfo import ZoneInfo
 
-from .utils import get_filepath_from_cloudflare_url
+from .utils import get_filepath_from_cloudflare_url, delete_tmp_media_files
 from .refresh_tokens import refresh_tokens
 from .process_images import process_images
 from .process_videos import process_videos
 
-from ..platforms.linkedin import post_on_linkedin
-from ..platforms.xtwitter import post_on_x
-from ..platforms.facebook import post_on_facebook
-from ..platforms.instagram import post_on_instagram
-from ..platforms.tiktok import post_on_tiktok
+from integrations.platforms.linkedin import post_on_linkedin
+from integrations.platforms.xtwitter import post_on_x
+from integrations.platforms.facebook import post_on_facebook
+from integrations.platforms.instagram import post_on_instagram
+from integrations.platforms.tiktok import post_on_tiktok
 
 
 def post_scheduled_posts():
@@ -56,7 +58,7 @@ def post_scheduled_posts():
             media_path = get_filepath_from_cloudflare_url(post.media_file.url)
             media_url = None
             if post.media_file:
-                media_url = post.media_file.url
+                media_url = f"{settings.APP_URL}/proxy-media-file/{os.path.basename(media_path)}" 
 
             # LINKEDIN
             if post.post_on_linkedin:
@@ -88,4 +90,5 @@ def post_scheduled_posts():
         loop.run_until_complete(run_post_tasks())
         log.debug(f"Finished async posting for {now_utc}")
     finally:
+        delete_tmp_media_files()
         loop.close()

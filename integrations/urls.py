@@ -16,4 +16,5 @@ urlpatterns = [
     path('tiktok/login/', views.tiktok_login, name='tiktok_login'),
     path('tiktok/callback/', views.tiktok_callback, name='tiktok_callback'),
     path('tiktok/uninstall/', views.tiktok_uninstall, name='tiktok_uninstall'),
+    path('proxy-media-file/<str:filename>', views.proxy_media_file, name='proxy_media_file'),
 ]

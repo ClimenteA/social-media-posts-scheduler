@@ -15,7 +15,7 @@ def process_videos():
         posts: list[PostModel] = PostModel.objects.filter(
             process_video = True,
             video_processed = False,
-            media_file_type = MediaFileTypes.IMAGE.value,
+            media_file_type = MediaFileTypes.VIDEO.value,
         ).filter(
             Q(post_on_x=True)
             | Q(post_on_instagram=True)
@@ -24,6 +24,11 @@ def process_videos():
             | Q(post_on_tiktok=True)
         ).only("pk", "account_id", "description", "media_file")
 
+        if len(posts) == 0:
+            return
+
+        log.debug(f"Got {len(posts)} videos to process")
+        
         for post in posts:
             try:
 
@@ -33,6 +38,9 @@ def process_videos():
                 vid_response.raise_for_status()
 
                 video_path = f"/tmp/{uuid.uuid4().hex}{ext}"
+
+                log.debug(f"Processing {video_path}...")
+        
                 with open(video_path, "wb") as f:
                     f.write(vid_response.content)
 
@@ -45,9 +53,11 @@ def process_videos():
 
                 os.remove(video_path)
                 
+                log.debug(f"Done processing {video_path}!")
+                
             except Exception as err:
                 log.exception(err)
-
+                send_notification("ImPosting", f"Got error on processing video {err}")
 
     except Exception as err:
         log.exception(err)

@@ -1,9 +1,11 @@
+import os
 import uuid
 import requests
 from core import settings
 from core.logger import log
 from requests_oauthlib import OAuth2Session
 from urllib.parse import urlencode
+from django.http import FileResponse, Http404
 from django.utils import timezone
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -67,18 +69,42 @@ def integrations_form(request):
         request,
         "integrations.html",
         context={
-            "linkedin_avatar_url": image_url_to_base64(linkedin_integration.avatar_url) if linkedin_integration else None,
-            "linkedin_username": linkedin_integration.username if linkedin_integration else None,
-            "x_avatar_url": image_url_to_base64(x_integration.avatar_url) if x_integration else None,
+            "linkedin_avatar_url": (
+                image_url_to_base64(linkedin_integration.avatar_url)
+                if linkedin_integration
+                else None
+            ),
+            "linkedin_username": (
+                linkedin_integration.username if linkedin_integration else None
+            ),
+            "x_avatar_url": (
+                image_url_to_base64(x_integration.avatar_url) if x_integration else None
+            ),
             "x_username": x_integration.username if x_integration else None,
-            "tiktok_avatar_url": image_url_to_base64(tiktok_integration.avatar_url) if tiktok_integration else None,
-            "tiktok_username": tiktok_integration.username if tiktok_integration else None,
-            "facebook_avatar_url": image_url_to_base64(facebook_integration.avatar_url) if facebook_integration else None,
-            "facebook_username": facebook_integration.username if facebook_integration else None,
-            "instagram_avatar_url": image_url_to_base64(
-                instagram_integration.avatar_url
-            ) if instagram_integration else None,
-            "instagram_username": instagram_integration.username if instagram_integration else None,
+            "tiktok_avatar_url": (
+                image_url_to_base64(tiktok_integration.avatar_url)
+                if tiktok_integration
+                else None
+            ),
+            "tiktok_username": (
+                tiktok_integration.username if tiktok_integration else None
+            ),
+            "facebook_avatar_url": (
+                image_url_to_base64(facebook_integration.avatar_url)
+                if facebook_integration
+                else None
+            ),
+            "facebook_username": (
+                facebook_integration.username if facebook_integration else None
+            ),
+            "instagram_avatar_url": (
+                image_url_to_base64(instagram_integration.avatar_url)
+                if instagram_integration
+                else None
+            ),
+            "instagram_username": (
+                instagram_integration.username if instagram_integration else None
+            ),
             "x_ok": x_ok,
             "linkedin_ok": linkedin_ok,
             "instagram_ok": facebook_ok,
@@ -567,3 +593,12 @@ def tiktok_uninstall(request):
     )
 
     return redirect("/integrations/")
+
+
+def proxy_media_file(request, filename: str):
+    filepath = f"/tmp/{filename}"
+
+    if not os.path.isfile(filepath):
+        raise Http404("File not found.")
+
+    return FileResponse(open(filepath, "rb"), as_attachment=False)

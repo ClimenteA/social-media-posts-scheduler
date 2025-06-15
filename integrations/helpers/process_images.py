@@ -23,21 +23,30 @@ def process_images():
             | Q(post_on_tiktok=True)
         ).only("pk", "account_id", "description", "media_file")
 
+        if len(posts) == 0:
+            return
+
+        log.debug(f"Got {len(posts)} images to process")
+        
         for post in posts:
             try:
                 image_path = get_filepath_from_cloudflare_url(post.media_file.url)
                 image_path = make_image_postable(image_path, post.description)
 
+                log.debug(f"Processing {image_path}...")
+        
                 with open(image_path, "rb") as f:
                     post.media_file = File(f)
                     post.image_processed = True
                     post.save(skip_validation=True)
 
                 os.remove(image_path)
+
+                log.debug(f"Done processing {image_path}!")
                 
             except Exception as err:
                 log.exception(err)
-
+                send_notification("ImPosting", f"Got error on processing image {err}")
 
     except Exception as err:
         log.exception(err)

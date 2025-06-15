@@ -69,7 +69,7 @@ class FacebookPoster:
                 "access_token": self.access_token,
             },
         )
-        log.debug(upload_start_response.json())
+        # log.debug(upload_start_response.json())
         upload_start_response.raise_for_status()
         upload_start_data = upload_start_response.json()
         video_id = upload_start_data["video_id"]
@@ -88,7 +88,7 @@ class FacebookPoster:
                 },
                 data=file,
             )
-            log.debug(upload_initiated_response.json())
+            # log.debug(upload_initiated_response.json())
             upload_initiated_response.raise_for_status()
 
         finish_response = requests.post(
@@ -101,7 +101,7 @@ class FacebookPoster:
             },
         )
         finish_response.raise_for_status()
-        log.debug(finish_response.json())
+        # log.debug(finish_response.json())
 
         max_checks = max(30, int(file_size_mb * 2))  # More time for larger files
         for _ in range(max_checks):
@@ -111,7 +111,7 @@ class FacebookPoster:
             )
             status_res.raise_for_status()
             status_data = status_res.json().get("status", {})
-            log.debug(status_data)
+            # log.debug(status_data)
 
             # Check processing/publishing status directly
             processing = status_data.get("processing_phase", {}).get("status")
@@ -151,7 +151,7 @@ class FacebookPoster:
             "access_token": self.access_token,
         }
         response = requests.post(self.photos_url, json=payload)
-        log.debug(response.json())
+        # log.debug(response.json())
         response.raise_for_status()
 
         return self.get_post_url(response.json()["post_id"])

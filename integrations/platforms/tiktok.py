@@ -14,6 +14,14 @@ from .common import (
 )
 
 
+@sync_to_async
+def get_tiktok_settings(post_id: int, account_id: int):
+    tiktok_settings = TikTokPostModel.objects.filter(
+        post_id=post_id, account_id=account_id
+    ).get()
+    return tiktok_settings
+
+
 @dataclass
 class TikTokPoster:
     integration: IntegrationsModel
@@ -147,14 +155,12 @@ class TikTokPoster:
             log.error(f"Failed to parse video metadata: {e}")
             raise ValueError(f"Invalid video file or corrupted metadata: {e}")
 
-    def initialize_upload(
+    async def initialize_upload(
         self, account_id: int, post_id: int, post_text: str, media_path: str
     ):
 
-        tiktok_settings = TikTokPostModel.objects.filter(
-            post_id=post_id, account_id=account_id
-        ).get()
-
+        tiktok_settings = await get_tiktok_settings(post_id, account_id)
+        
         video_size = os.path.getsize(media_path)
         chunk_size, total_chunk_count = self.calculate_chunks(video_size)
 
@@ -235,7 +241,7 @@ class TikTokPoster:
 
         return upload_status
 
-    def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
+    async def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
 
         creator_info = self.get_creator_info()
         video_duration = self.get_video_duration(media_path)
@@ -244,7 +250,7 @@ class TikTokPoster:
                 f"Maximum video duration allowed for account id: {account_id} is {creator_info['max_video_post_duration_sec']} seconds"
             )
 
-        publish_id, upload_url, video_size = self.initialize_upload(
+        publish_id, upload_url, video_size = await self.initialize_upload(
             account_id, post_id, post_text, media_path
         )
         self.upload_file(media_path, video_size, upload_url, publish_id, account_id)
@@ -276,7 +282,7 @@ async def post_on_tiktok(
     if integration:
         try:
             poster = TikTokPoster(integration)
-            post_url = poster.make_post(account_id, post_id, post_text, media_path)
+            post_url = await poster.make_post(account_id, post_id, post_text, media_path)
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e

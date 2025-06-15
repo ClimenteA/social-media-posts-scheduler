@@ -2,8 +2,10 @@ import os
 import uuid
 import base64
 import requests
-from ..models import IntegrationsModel, Platform
-from ..platforms.tiktok import TikTokPoster
+from core.logger import log
+from pathlib import Path
+from integrations.models import IntegrationsModel, Platform
+from integrations.platforms.tiktok import TikTokPoster
 
 
 # Brave browser thinks external profile url pics are an advert.
@@ -49,3 +51,13 @@ def get_tiktok_creator_info(account_id: int):
     poster = TikTokPoster(integration)
 
     return poster.get_creator_info()
+
+
+def delete_tmp_media_files():
+
+    for file_path in Path("/tmp").iterdir():
+        if file_path.is_file() and file_path.suffix.lower() in {".png", ".jpeg", ".jpg", ".mp4"}:
+            try:
+                file_path.unlink()
+            except Exception as err:
+                log.exception(err)
