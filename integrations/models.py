@@ -1,7 +1,7 @@
 from django.db import models
 from core import settings
 from django.utils.translation import gettext_lazy as _
-from integrations.aes import AESCBC
+from integrations.helpers.aes import AESCBC
 
 
 class Platform(models.TextChoices):

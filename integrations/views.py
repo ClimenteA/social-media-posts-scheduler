@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from social_django.models import UserSocialAuth
 from .models import IntegrationsModel, Platform
-from .utils import image_url_to_base64
+from .helpers.utils import image_url_to_base64
 
 
 @login_required

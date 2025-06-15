@@ -3,8 +3,8 @@ from django.db.models import Q
 from django.core.files import File
 from core.logger import log, send_notification
 from socialsched.models import PostModel, MediaFileTypes
-from integrations.image_processor.make_image_postable import make_image_postable
-from integrations.utils import get_filepath_from_cloudflare_url
+from integrations.helpers.image_processor.make_image_postable import make_image_postable
+from integrations.helpers.utils import get_filepath_from_cloudflare_url
 
 
 

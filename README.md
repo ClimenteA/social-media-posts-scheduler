@@ -1,4 +1,3 @@
-
 <div align="center">
   <strong>
   <h2>A Simple (no fluff) Social Media Posts Scheduler</h2><br />

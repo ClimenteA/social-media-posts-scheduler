@@ -141,7 +141,7 @@ async def post_on_x(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            await sync_to_async(integration.delete)()
+            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize X on Integrations page"
 

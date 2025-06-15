@@ -2,8 +2,8 @@ import os
 import uuid
 import base64
 import requests
-from .models import IntegrationsModel, Platform
-from .platforms.tiktok import TikTokPoster
+from ..models import IntegrationsModel, Platform
+from ..platforms.tiktok import TikTokPoster
 
 
 # Brave browser thinks external profile url pics are an advert.

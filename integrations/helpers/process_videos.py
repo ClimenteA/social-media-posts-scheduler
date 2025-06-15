@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.core.files import File
 from socialsched.models import PostModel, MediaFileTypes
 from core.logger import log, send_notification
-from integrations.video_processor.make_video_postable import make_video_postable
+from integrations.helpers.video_processor.make_video_postable import make_video_postable
 
 
 

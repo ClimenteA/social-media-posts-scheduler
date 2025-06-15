@@ -7,7 +7,7 @@ from django.db.models import Min, Max
 from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
-from integrations.utils import get_tiktok_creator_info
+from integrations.helpers.utils import get_tiktok_creator_info
 from .models import PostModel, TikTokPostModel
 from .forms import PostForm, TikTokForm
 from .schedule_utils import (
