@@ -75,7 +75,8 @@
                 If you don't see your posts published come on this page and click on Authorize button again (the token
                 expired and the app needs a new one).
             </p>
-            <img src="{% static 'integrations.png' %}" alt="imposting integrations">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-integrations.png' %}" alt="imposting integrations">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-integrations.png' %}" alt="imposting integrations">
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Calendar</strong>
@@ -83,30 +84,78 @@
                 A simple calendar where you can see the days you have posts or not. Select day or click Post Today
                 button.
             </p>
-            <img src="{% static 'calendar.png' %}" alt="imposting calendar">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-calendar.png' %}" alt="imposting calendar">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-calendar.png' %}" alt="imposting calendar">
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Schedule</strong>
             <p>
                 Just a simple form to write your post and add a image.
             </p>
-            <img src="{% static 'schedule.png' %}" alt="imposting schedule">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-schedule-post.png' %}" alt="imposting schedule post">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-schedule-post.png' %}" alt="imposting schedule post">
         </div>
 
         <div style="display: flex; flex-direction: column; justify-content: center;">
-            <strong>Post</strong>
+            <strong>TikTok</strong>
             <p>
-                You can view posts for selected day below the schedule form.
-                The social media icons will turn green once published (click on them to view the post on those
-                platforms).
+                If you post on TikTok you'll need to complete another form.
             </p>
-            <img src="{% static 'post.png' %}" alt="imposting post">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-tiktok-form.png' %}" alt="imposting tiktok form">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-tiktok-form.png' %}" alt="imposting tiktok form">
         </div>
     </div>
 
 </div>
 
 
+<div class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
+
+    <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
+        <h1>Pricing</h1>
+        <p>Prices without the marketing psychology degree.</p>
+    </hgroup>
+
+    <div class="grid">
+    
+        <article style="display: flex; align-items: center; flex-direction: column;">
+
+            <h2 style="margin-top: 1rem;">😎 Vibe Poster</h2>
+
+            <strong style="margin-top: 1rem;">1$ per published post on all platforms</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
+                You post when inspiration strikes - not because an algorithm told you to. 
+                One click, all your accounts. Worth a buck to skip the copy-paste dance?
+            </p>
+
+            <a style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+                I'm a vibe poster
+            </a>
+    
+        </article>
+    
+        <article style="display: flex; align-items: center;  flex-direction: column;">
+            
+            <h2 style="margin-top: 1rem;">🫡 Committed Poster</h2>
+
+            <strong style="margin-top: 1rem;">120$ per published post on all platforms</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
+                You're serious about building a brand and you know this takes a few years to gain some traction.
+                Focus on content - we'll handle the boring stuff.
+                You get 7 days trial to see if you like it.
+            </p>
+
+            <a style="margin-top: 2rem; margin-bottom: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+                I'm a commited poster
+            </a>
+    
+        </article>
+
+    </div>        
+
+</div>
 
 <div class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
 
@@ -120,8 +169,8 @@
         <summary>How much does it cost?</summary>
         <p>
         <ul>
-            <li>First month is FREE! After that I will contact you via email and ask you which plan you would like:</li>
-            <li><strong>😎 Vibe Poster Plan:</strong> 1$ per published post.</li>
+            <li>You'll get 7 days trial! After that I will contact you via email and ask you which plan you would like:</li>
+            <li><strong>😎 Vibe Poster Plan:</strong> 1$ per published post on all supported platforms.</li>
             <li><strong>🫡 Committed Poster Plan:</strong> 120$ for 12 months.</li>
         </ul>
         </p>
@@ -166,7 +215,7 @@
     <details>
         <summary>Can I post videos?</summary>
         <p>
-            Yes. YouTube will be added soon.
+            Yes on Facebook, Instagram and TikTok. YouTube will be added soon.
         </p>
     </details>
 
@@ -174,7 +223,7 @@
     <details>
         <summary>Does it have analytics?</summary>
         <p>
-            No. Turn on notifications - if you have many notifications you did good if not you need to improve.
+            No. Turn on notifications - if you have many notifications you did good, if not, you need to improve.
         </p>
     </details>
 
@@ -191,21 +240,15 @@
     <details>
         <summary>What if I don't like this app?</summary>
         <p>
-            You have 30 days free to see if this social media app scheduler, one among a dozen, is the right one for
-            you.
+            You have 7 days trial to see if this social media app scheduler, one among a dozen, is the right one for
+            you. 
         </p>
     </details>
 
     <details>
         <summary>How will I pay if I like it?</summary>
         <p>
-            After the first free month I'll contact you via the email you've logged in and ask you for the plan you
-            choosed (Vibe Poster or Committed Poster Plan) and some details needed for future invoice.
-            <br>
-            If you chosed Vibe Poster Plan I'll send you an invoice monthly based on published posts (1$ per published
-            post).
-            <br>
-            If you chosed Committed Poster Plan I'll send you an invoice of 120$ for a 12 months period.
+            Old school wire bank transfer.
         </p>
     </details>
 
@@ -220,7 +263,7 @@
     <details>
         <summary>Why only login with Google is supported?</summary>
         <p>
-            It's the easiest way to make sure new accounts are real. Everyone has a Google account nowadays.
+            It's a way to make sure new accounts are real (kinda). Everyone has a Google account nowadays.
         </p>
     </details>
 
@@ -238,7 +281,7 @@
 </div>
 
 
-<div style="display: flex; flex-direction: column; justify-content: center; margin-bottom: 12rem;">
+<div style="display: flex; flex-direction: column; justify-content: center;">
     <h1 style="text-align: center;">😁 Looks good for you?</h1>
 
     <a style="margin-top: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
@@ -247,7 +290,7 @@
     </a>
 
     <small style="margin-top: 2rem; text-align: center;" class="pico-color-yellow-200">
-        You'll get 30 days FREE to test it!
+        You'll get 7 days trial to test it!
     </small>
 
 </div>
