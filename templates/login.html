@@ -109,7 +109,7 @@
 </div>
 
 
-<div class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
+<div id="pricing" class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
 
     <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
         <h1>Pricing</h1>
@@ -117,31 +117,33 @@
     </hgroup>
 
     <div class="grid">
-    
+
+
         <article style="display: flex; align-items: center; flex-direction: column;">
 
-            <h2 style="margin-top: 1rem;">😎 Vibe Poster</h2>
+            <h2 style="margin-top: 1rem;">👨‍💻 Open Source</h2>
 
-            <strong style="margin-top: 1rem;">1$ per published post on all platforms</strong>
+            <strong style="margin-top: 1rem;">FREE - You can self-host it yourself</strong>
 
-            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
-                You post when inspiration strikes - not because an algorithm told you to. 
-                One click, all your accounts. Worth a buck to skip the copy-paste dance?
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-500">
+                You'll need a VM, a Cloudflare account for storing media files, 
+                developer accounts and some approvals from social media providers. 
             </p>
 
-            <a style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
-                I'm a vibe poster
+            <a target="_blank" style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="https://github.com/ClimenteA/social-media-posts-scheduler">
+                I'm a tech connoisseur
             </a>
     
         </article>
-    
-        <article style="display: flex; align-items: center;  flex-direction: column;">
+
+
+        <article style="display: flex; align-items: center; flex-direction: column; border: 1px solid gold;">
             
             <h2 style="margin-top: 1rem;">🫡 Committed Poster</h2>
 
-            <strong style="margin-top: 1rem;">120$ per published post on all platforms</strong>
+            <strong style="margin-top: 1rem;">120$ for 12 months aka 10$ per month</strong>
 
-            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-400">
                 You're serious about building a brand and you know this takes a few years to gain some traction.
                 Focus on content - we'll handle the boring stuff.
                 You get 7 days trial to see if you like it.
@@ -152,29 +154,35 @@
             </a>
     
         </article>
+    
+        <article style="display: flex; align-items: center; flex-direction: column;">
+
+            <h2 style="margin-top: 1rem;">😎 Vibe Poster</h2>
+
+            <strong style="margin-top: 1rem;">1$ per published post on all platforms</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-500">
+                You post when inspiration strikes - not because an algorithm told you to. 
+                One click, all your accounts. Worth a buck to skip the copy-paste dance?
+            </p>
+
+            <a style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+                I'm a vibe poster
+            </a>
+    
+        </article>
+    
 
     </div>        
 
 </div>
 
-<div class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
+<div id="faq" class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
 
     <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
         <h1>FAQ</h1>
         <p>Here are probably the answers for all your questions related to this social media scheduling app.</p>
     </hgroup>
-
-
-    <details>
-        <summary>How much does it cost?</summary>
-        <p>
-        <ul>
-            <li>You'll get 7 days trial! After that I will contact you via email and ask you which plan you would like:</li>
-            <li><strong>😎 Vibe Poster Plan:</strong> 1$ per published post on all supported platforms.</li>
-            <li><strong>🫡 Committed Poster Plan:</strong> 120$ for 12 months.</li>
-        </ul>
-        </p>
-    </details>
 
 
     <details>
@@ -194,9 +202,9 @@
             </li>
         </ul>
 
-        <p>✍️ You'll need a TikTok business account. Posts will be published on that TikTok account.</p>
+        <p>✍️ You'll need a TikTok business account. Posts will be published on that TikTok business account.</p>
         <ul>
-            <li>1 TikTok account</li>
+            <li>1 TikTok business account</li>
         </ul>
 
         <p>✍️ You'll need a Linkedin account. Posts will be published on that Linkedin account.</p>
@@ -212,19 +220,41 @@
         </p>
     </details>
 
+
     <details>
-        <summary>Can I post videos?</summary>
+        <summary>How many posts can I send per day?</summary>
         <p>
-            Yes on Facebook, Instagram and TikTok. YouTube will be added soon.
+            You can make 2 posts per day on each platform. 
+            Ex: X: 2 posts, Facebook: 2 posts, TikTok: 2 posts etc.
+            Trust me it's more than enough.
+        </p>
+    </details>
+
+
+    <details>
+        <summary>Can I post reels (videos)?</summary>
+        <p>
+            Yes, on Facebook, Instagram and TikTok. YouTube will be added soon.
+            Videos will be processed to make sure they have minimum requirements for publishing. 
+            Same with images, even more if you post just text and that will be converted to an image (super useful for instagram where you can't make text posts).
         </p>
     </details>
 
 
     <details>
         <summary>Does it have analytics?</summary>
-        <p>
-            No. Turn on notifications - if you have many notifications you did good, if not, you need to improve.
-        </p>
+
+        <div>
+
+            <p>
+                No. Turn on notifications - if you have many notifications you did good, if not, you need to improve.
+                imposting.com takes John's weather forecating stone approach. 
+                If you need data check in the social media apps you've been posting on. 
+            </p>
+            
+            <img style="border-radius: 18px;" src="{% static 'johns-weather-forecating-stone.jpg' %}" alt="">
+        </div>
+
     </details>
 
 
@@ -233,6 +263,7 @@
         <p>
             It helps you get in front of your leads.
             It helps your possible clients make the decision to choose you instead of your competition.
+            It's all about building trust and letting people know how you can help them.
         </p>
     </details>
 
@@ -267,16 +298,6 @@
         </p>
     </details>
 
-    <details>
-        <summary>Is this app open-source?</summary>
-        <p>
-            Yes. The code for this app is open-source. You can host this app yourself if you want.
-            <br>
-            Check it out at this
-            <a href="https://github.com/ClimenteA/social-media-posts-scheduler">GitHub Repository</a>.
-            Make sure to leave a ⭐ (star) if you like it.
-        </p>
-    </details>
 
 </div>
 

@@ -75,7 +75,30 @@
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
             </li>
+
+            {% else %}
+
+
+            <li>
+                <a href="{% url 'login' %}#faq">
+                    FAQ
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'login' %}#pricing">
+                    Pricing
+                </a>
+            </li>
+
+            <li>
+                <a target="_blank" href="https://softgata.com/about/">
+                    About
+                </a>
+            </li>
+
             {% endif %}
+        
         </ul>
     </nav>
 
