@@ -21,7 +21,7 @@
 </div>
 
 <p align="center">
-Built with Django and AlpineJs. Schedule posts with text/image/link on Facebook public page, Instagram profesional account, Linkedin, X. Deploy it yourself or contact me to help you deploy it.
+Built with Django and AlpineJs. Schedule posts with text/image/link on Facebook public page, Instagram profesional account, TikTok business account, Linkedin, X. Deploy it yourself or contact me to help you deploy it.
 </p>
 
 
