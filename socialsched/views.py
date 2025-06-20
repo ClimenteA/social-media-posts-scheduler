@@ -157,6 +157,12 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
         account_id=social_uid, scheduled_on__date=scheduled_on
     )
 
+    posts = PostModel.objects.filter(
+        account_id=social_uid, scheduled_on__date=scheduled_on
+    )
+
+
+
     show_form = today.date() <= scheduled_on
 
     if form is None:
@@ -240,6 +246,16 @@ def schedule_delete(request, post_id):
 
     post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
     isodate = post.scheduled_on.date().isoformat()
+
+    if any([post.link_facebook, post.link_instagram, post.link_linkedin, post.link_tiktok, post.link_x]):
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You cannot delete a published post!",
+            extra_tags="🟥 Not allowed!",
+        )
+        return redirect(f"/schedule/{isodate}/")
+    
     post.delete()
 
     # Deleting weak tiktok reference as well
