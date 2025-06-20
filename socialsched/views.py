@@ -145,11 +145,10 @@ def calendar(request):
     )
 
 
-@login_required
-def schedule_form(request, isodate):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
 
+
+def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = None):
+    
     today = timezone.now()
     scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
     prev_date = scheduled_on - timedelta(days=1)
@@ -160,22 +159,31 @@ def schedule_form(request, isodate):
 
     show_form = today.date() <= scheduled_on
 
-    form = PostForm(initial={"scheduled_on": scheduled_on})
+    if form is None:
+        form = PostForm(initial={"scheduled_on": scheduled_on})
+
+    return {
+        "show_form": show_form,
+        "posts": posts,
+        "post_form": form,
+        "isodate": isodate,
+        "year": scheduled_on.year,
+        "current_date": scheduled_on,
+        "prev_date": prev_date,
+        "today": today.date().isoformat(),
+        "next_date": next_date,
+    }
+
+
+@login_required
+def schedule_form(request, isodate):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
 
     return render(
         request,
         "schedule.html",
-        context={
-            "show_form": show_form,
-            "posts": posts,
-            "post_form": form,
-            "isodate": isodate,
-            "year": scheduled_on.year,
-            "current_date": scheduled_on,
-            "prev_date": prev_date,
-            "today": today.date().isoformat(),
-            "next_date": next_date,
-        },
+        context=get_schedule_form_context(social_uid, isodate, form=None)
     )
 
 
@@ -187,19 +195,10 @@ def schedule_save(request, isodate):
     form = PostForm(request.POST, request.FILES)
 
     if not form.is_valid():
-        scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
-        posts = PostModel.objects.filter(
-            account_id=social_uid, scheduled_on__date=scheduled_on
-        )
-
         return render(
             request,
             "schedule.html",
-            context={
-                "posts": posts,
-                "post_form": form,
-                "scheduled_on": isodate,
-            },
+            context=get_schedule_form_context(social_uid, isodate, form),
         )
 
     try:
@@ -243,6 +242,7 @@ def schedule_delete(request, post_id):
     isodate = post.scheduled_on.date().isoformat()
     post.delete()
 
+    # Deleting weak tiktok reference as well
     TikTokPostModel.objects.filter(post_id=post_id, account_id=social_uid).delete()
 
     messages.add_message(
