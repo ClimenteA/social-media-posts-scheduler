@@ -1,4 +1,3 @@
-
 <div align="center">
   <strong>
   <h2>A Simple (no fluff) Social Media Posts Scheduler</h2><br />
@@ -22,7 +21,7 @@
 </div>
 
 <p align="center">
-Built with Django and AlpineJs. Schedule posts with text/image/link on Facebook public page, Instagram profesional account, Linkedin, X. Deploy it yourself or contact me to help you deploy it.
+Built with Django and AlpineJs. Schedule posts with text/image/link on Facebook public page, Instagram profesional account, TikTok business account, Linkedin, X. Deploy it yourself or contact me to help you deploy it.
 </p>
 
 
@@ -104,23 +103,31 @@ Shortcut make commands:
 - Update .env file with Client ID (LINKEDIN_CLIENT_ID) and Primary Client Secret (LINKEDIN_CLIENT_SECRET);
 
 
+## TikTok
+
+- You'll need a business tiktok account to post via API;
+- Google [tiktok for developers](https://developers.tiktok.com/);
+- Create an app;
+- Add products Login Kit and Content Posting API
+- In Login Kit set the callback url: https://ngrok-or-prod-url.app/tiktok/callback/;
+- Add your tiktok account in Target Users for testing;
+
+
 ## Screenshots
 
 Allow ImPosting to post on your behalf. Click on Authorize button. 
 If you don't see your posts published come on this page and click on Authorize button again (the token expired and the app needs a new one). 
 
-![integrations](./static/integrations.png)
+![integrations](./static/dark-integrations.png)
 
 A simple calendar where you can see the days you have posts or not. Select day or click Post Today button.
 
-![calendar](./static/calendar.png)
+![calendar](./static/dark-calendar.png)
 
 Just a simple form to write your post and add a image.
 
-![schedule](./static/schedule.png)
+![schedule](./static/dark-schedule-post.png)
 
 
 You can view posts for selected day below the schedule form. 
 The social media icons will turn green once published (click on them to view the post on those platforms).
-
-![post](./static/post.png)

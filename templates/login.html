@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page-title %} ImPosting - Schedule posts on Instagram, Facebook, X, Linkedin {% endblock %}
+{% block page-title %} ImPosting - Schedule posts on Instagram, Facebook, TikTok, X, Linkedin {% endblock %}
 
 
 {% block body %}
 
 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
 
-    <h1 style="text-align: center;">Schedule posts on Instagram, Facebook, X, Linkedin!</h1>
+    <h1 style="text-align: center;">Schedule posts on Instagram, Facebook, TikTok, X, Linkedin!</h1>
     <p style="max-width: 800px; text-align: center;">
         Keep a consistent online presence of your business or personal brand by posting every day and
         get more leads in the process.
     </p>
 
-    <img height="350px" width="350px" style="margin-top: 2rem;" src="{% static 'hero-image.png' %}" alt="">
+    <img height="520px" width="520px" style="margin-top: 2rem; border-radius: 18px;" src="{% static 'hero-image.png' %}" alt="">
 
     <a style="margin-top: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
         <i class="bi bi-google"></i>
@@ -50,6 +50,10 @@
             <td>Copy and schedule/Post on Meta Business</th>
             <td>-</td>
         </tr>
+        <tr>
+            <td>Copy and schedule/Post on TikTok</th>
+            <td>-</td>
+        </tr>
     </tbody>
 </table>
 
@@ -71,7 +75,8 @@
                 If you don't see your posts published come on this page and click on Authorize button again (the token
                 expired and the app needs a new one).
             </p>
-            <img src="{% static 'integrations.png' %}" alt="imposting integrations">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-integrations.png' %}" alt="imposting integrations">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-integrations.png' %}" alt="imposting integrations">
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Calendar</strong>
@@ -79,32 +84,100 @@
                 A simple calendar where you can see the days you have posts or not. Select day or click Post Today
                 button.
             </p>
-            <img src="{% static 'calendar.png' %}" alt="imposting calendar">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-calendar.png' %}" alt="imposting calendar">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-calendar.png' %}" alt="imposting calendar">
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Schedule</strong>
             <p>
                 Just a simple form to write your post and add a image.
             </p>
-            <img src="{% static 'schedule.png' %}" alt="imposting schedule">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-schedule-post.png' %}" alt="imposting schedule post">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-schedule-post.png' %}" alt="imposting schedule post">
         </div>
 
         <div style="display: flex; flex-direction: column; justify-content: center;">
-            <strong>Post</strong>
+            <strong>TikTok</strong>
             <p>
-                You can view posts for selected day below the schedule form.
-                The social media icons will turn green once published (click on them to view the post on those
-                platforms).
+                If you post on TikTok you'll need to complete another form.
             </p>
-            <img src="{% static 'post.png' %}" alt="imposting post">
+            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-tiktok-form.png' %}" alt="imposting tiktok form">
+            <img x-cloak x-show="theme === 'light'" src="{% static 'light-tiktok-form.png' %}" alt="imposting tiktok form">
         </div>
     </div>
 
 </div>
 
 
+<div id="pricing" class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
 
-<div class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
+    <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
+        <h1>Pricing</h1>
+        <p>Prices without the marketing psychology degree. You get 7 days trial to see if it's worth it for you.</p>
+    </hgroup>
+
+    <div class="grid">
+
+
+        <article style="display: flex; align-items: center; flex-direction: column;">
+
+            <h2 style="margin-top: 1rem;">👨‍💻 Open Source</h2>
+
+            <strong style="margin-top: 1rem;">FREE - You can self-host it yourself</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
+                You'll need a VM, a Cloudflare account for storing media files, 
+                developer accounts and some approvals from social media providers. 
+            </p>
+
+            <a target="_blank" style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="https://github.com/ClimenteA/social-media-posts-scheduler">
+                I'm a tech connoisseur
+            </a>
+    
+        </article>
+
+
+        <article style="display: flex; align-items: center; flex-direction: column; border: 2px solid gold;">
+            
+            <h2 style="margin-top: 1rem;">🫡 Committed Poster</h2>
+
+            <strong style="margin-top: 1rem;">120$ for 12 months aka 10$ per month</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" :class="theme === 'dark' ? 'pico-color-slate-400': 'pico-color-slate-650'">
+                You're serious about building a brand and you know this takes a few years to gain some traction.
+                Focus on content - we'll handle the boring stuff.
+                You get 7 days trial to see if you like it.
+            </p>
+
+            <a style="margin-top: 2rem; margin-bottom: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+                I'm a commited poster
+            </a>
+    
+        </article>
+    
+        <article style="display: flex; align-items: center; flex-direction: column;">
+
+            <h2 style="margin-top: 1rem;">😎 Vibe Poster</h2>
+
+            <strong style="margin-top: 1rem;">1$ per published post on all platforms</strong>
+
+            <p style="text-align: center; margin-top: 1rem;" class="pico-color-slate-550">
+                You post when inspiration strikes - not because an algorithm told you to. 
+                One click, all your accounts. Worth a buck to skip the copy-paste dance?
+            </p>
+
+            <a style="margin-top: 2rem; margin-bottom: 2rem;" class="secondary" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+                I'm a vibe poster
+            </a>
+    
+        </article>
+    
+
+    </div>        
+
+</div>
+
+<div id="faq" class="container" style="display: flex; flex-direction: column; margin-top: 6rem; margin-bottom: 6rem;">
 
     <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
         <h1>FAQ</h1>
@@ -113,21 +186,9 @@
 
 
     <details>
-        <summary>How much does it cost?</summary>
-        <p>
-        <ul>
-            <li>First month is FREE! After that I will contact you via email and ask you which plan you would like:</li>
-            <li><strong>😎 Vibe Poster Plan:</strong> 0.3$ per published post.</li>
-            <li><strong>🫡 Committed Poster Plan:</strong> 47$ for 12 months.</li>
-        </ul>
-        </p>
-    </details>
-
-
-    <details>
         <summary>Is is good for me?</summary>
         <p>
-            <strong>You can schedule a post with text + image on Facebook, Instagram, LinkedIn, X.</strong>
+            <strong>You can schedule a post with text + image on Facebook, Instagram, TikTok LinkedIn, X.</strong>
 
         <p>✍️ Facebook public page and Instagram professional account need to be linked into Meta Business Suite!
             Posts will be published on the Facebook public page and the Instagram professional account.
@@ -139,6 +200,11 @@
             <li>
                 1 Instagram Profesional account
             </li>
+        </ul>
+
+        <p>✍️ You'll need a TikTok business account. Posts will be published on that TikTok business account.</p>
+        <ul>
+            <li>1 TikTok business account</li>
         </ul>
 
         <p>✍️ You'll need a Linkedin account. Posts will be published on that Linkedin account.</p>
@@ -154,19 +220,41 @@
         </p>
     </details>
 
+
     <details>
-        <summary>Can I post videos?</summary>
+        <summary>How many posts can I send per day?</summary>
         <p>
-            No, but it's planned. TikTok and YouTube as well.
+            You can make 2 posts per day on each platform. 
+            Ex: X: 2 posts, Facebook: 2 posts, TikTok: 2 posts etc.
+            Trust me it's more than enough.
+        </p>
+    </details>
+
+
+    <details>
+        <summary>Can I post reels (videos)?</summary>
+        <p>
+            Yes, on Facebook, Instagram and TikTok. YouTube will be added soon.
+            Videos will be processed to make sure they have minimum requirements for publishing. 
+            Same with images, even more if you post just text and that will be converted to an image (super useful for instagram where you can't make text posts).
         </p>
     </details>
 
 
     <details>
         <summary>Does it have analytics?</summary>
-        <p>
-            No. Turn on notifications - if you have many notifications you did good if not you need to improve.
-        </p>
+
+        <div>
+
+            <p>
+                No. Turn on notifications - if you have many notifications you did good, if not, you need to improve.
+                imposting.com takes John's weather forecating stone approach. 
+                If you need data check in the social media apps you've been posting on. 
+            </p>
+            
+            <img style="border-radius: 18px;" src="{% static 'johns-weather-forecating-stone.jpg' %}" alt="">
+        </div>
+
     </details>
 
 
@@ -175,6 +263,7 @@
         <p>
             It helps you get in front of your leads.
             It helps your possible clients make the decision to choose you instead of your competition.
+            It's all about building trust and letting people know how you can help them.
         </p>
     </details>
 
@@ -182,21 +271,15 @@
     <details>
         <summary>What if I don't like this app?</summary>
         <p>
-            You have 30 days free to see if this social media app scheduler, one among a dozen, is the right one for
-            you.
+            You have 7 days trial to see if this social media app scheduler, one among a dozen, is the right one for
+            you. 
         </p>
     </details>
 
     <details>
         <summary>How will I pay if I like it?</summary>
         <p>
-            After the first free month I'll contact you via the email you've logged in and ask you for the plan you
-            choosed (Vibe Poster or Committed Poster Plan) and some details needed for future invoice.
-            <br>
-            If you chosed Vibe Poster Plan I'll send you an invoice monthly based on published posts (0.3$ per published
-            post).
-            <br>
-            If you chosed Committed Poster Plan I'll send you an invoice of 47$ for a 12 months period.
+            Old school wire bank transfer.
         </p>
     </details>
 
@@ -205,92 +288,21 @@
         <summary>Why I don't see here Threads, Mastodon, Bluesky etc.?</summary>
         <p>
             They are not supported. Not sure if they will ever be included in this app.
-            TikTok and YouTube are a maybe in the roadmap.
         </p>
     </details>
 
     <details>
         <summary>Why only login with Google is supported?</summary>
         <p>
-            It's the easiest way to make sure new accounts are real. Everyone has a Google account nowadays.
+            It's a way to make sure new accounts are real (kinda). Everyone has a Google account nowadays.
         </p>
     </details>
 
-    <details>
-        <summary>Is this app open-source?</summary>
-        <p>
-            Yes. The code for this app is open-source. You can host this app yourself if you want.
-            <br>
-            Check it out at this
-            <a href="https://github.com/ClimenteA/social-media-posts-scheduler">GitHub Repository</a>.
-            Make sure to leave a ⭐ (star) if you like it.
-        </p>
-    </details>
-
-
-    <details>
-        <summary id="cookies">Cookies, Privacy & GDPR Policy</summary>
-        <p>
-            This app is hosted on a secure VPS and utilizes the latest
-            up-to-date packages and best practices to protect your information.
-
-            Your data is collected solely for the following purposes:
-
-        <ul>
-            <li>Authentication within the app</li>
-            <li>Publishing scheduled posts on social media</li>
-            <li>Generating invoices based on usage</li>
-            <li>Direct comunication with you regarding the app</li>
-            <li>Monitoring usage with the purpuse of improving the app</li>
-        </ul>
-
-        imposting.com has SSL encryption and other security measures to protect your information. However, as with all
-        online applications, complete security cannot be guaranteed.
-
-        By using this app, you grant permission for necessary access to Google for authentication and Facebook,
-        Instagram, LinkedIn, and X for social media publishing. You can review and manage these permissions at any
-        time through your respective account settings.
-
-        Additionally, under GDPR regulations, you have the following rights:
-
-        <ul>
-            <li>Access and review the personal data we store</li>
-            <li>Request corrections or deletions of your data</li>
-            <li>Withdraw consent for data processing</li>
-        </ul>
-
-        For further details or privacy-related inquiries, feel free to contact me at alinclimente@softgata.com.
-        </p>
-    </details>
-
-
-    <details>
-        <summary>Terms and conditions</summary>
-        <p>
-
-            Any form of abuse, misuse, or malicious activity that compromises user data or the proper functionality of
-            this application will result in a permanent ban. This includes, but is not limited to, unauthorized access
-            attempts, spamming, exploitation of vulnerabilities, or any behavior that may harm the platform or its
-            users.
-
-            <br> <br>
-            Business details:
-        <ul>
-            <li>Name: CLIMENTE ALIN IONEL PFA</li>
-            <li>Location: Iasi, Romania, Europe</li>
-            <li>Tax id: 43000098</li>
-            <li>Email: alinclimente@softgata.com</li>
-            <li>Linkedin: https://www.linkedin.com/in/climente-alin/</li>
-            <li>Website: https://softgata.com/</li>
-        </ul>
-
-        </p>
-    </details>
 
 </div>
 
 
-<div style="display: flex; flex-direction: column; justify-content: center; margin-bottom: 12rem;">
+<div style="display: flex; flex-direction: column; justify-content: center;">
     <h1 style="text-align: center;">😁 Looks good for you?</h1>
 
     <a style="margin-top: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
@@ -299,7 +311,7 @@
     </a>
 
     <small style="margin-top: 2rem; text-align: center;" class="pico-color-yellow-200">
-        You'll get 30 days FREE to test it!
+        You'll get 7 days trial to test it!
     </small>
 
 </div>

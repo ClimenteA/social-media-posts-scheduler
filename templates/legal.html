@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page-title %} Legal {% endblock %}
+
+
+{% block body %}
+
+
+<div class="container">
+    <h3 id="privacy-policy">Privacy Policy</h3>
+
+    <p>
+        Data Collection:
+        imposting.com collects the following user data: username, name, and profile picture, if the user grants access to imposting.com to post via API. This information is displayed when the user clicks the Authorize button on the Integrations page in the modal corresponding to one of the platforms supported by imposting.com for scheduling posts.
+    </p>
+    <p>
+        Data Use and Processing:
+        The collected data is saved to a database via SSL and used on the Integrations page to display the username and profile picture next to the integration authorized by the user. This helps users identify which pages/profiles are managed by imposting.com. Currently, only one account is supported for each platform (e.g., one Facebook public page, one Instagram business account, one X account, one LinkedIn account, one TikTok business account). Login with Google is used to authenticate users via OAuth2. All data is used to enable imposting.com to post via API on behalf of the user and to identify users in case they require support.
+    </p>
+    <p>
+        Data Storage and Security:
+        User data is stored in a cloud-based SQL database. HTTPS/SSL is used to secure data during transfer. The application packages and operating system are regularly updated to ensure the app remains secure from potential threats. While no system is entirely immune to breaches, we continuously monitor the application's health and take action as needed.
+    </p>
+    <p>
+        User Rights:
+        Users can access their data within the app and delete it or revoke access to external APIs on the Integration page. Users can also revoke access on the respective third-party apps. For example, users can forbid access to imposting.com by adjusting their Google settings. Users can request their data to be sent to them via email by contacting alinclimente@softgata.com.
+    </p>
+    <p>
+        Data Sharing:
+        User data is not shared with third parties.
+    </p>
+</div>
+
+
+
+<div class="container">
+    <h3 id="terms-of-service">Terms of Service</h3>
+
+    <p>
+        User Responsibilities and Prohibited Activities:
+        Users must not intentionally cause outages or attempt to hack the app to access other users' data. Users must adhere to the terms of service of the platforms they use to publish their posts. Users must use the app for its intended purpose and should not attempt to disrupt its functioning. Users are encouraged to report any issues with the app by opening an issue on GitHub at ClimenteA/social-media-posts-scheduler or by emailing alinclimente@softgata.com. Reports should include detailed steps to reproduce the error.
+    </p>
+
+    <p>
+        Limitations of Liability:
+        imposting.com will attempt to resolve any platform issues as promptly as possible. However, imposting.com is not responsible if posts are not published due to unrefreshed access tokens or downtime of external APIs. In cases where external APIs change and cause issues with imposting.com, efforts will be made to restore functionality promptly. Since users have a trial period to assess the app, imposting.com does not offer refunds. Users experiencing outages may receive free usage at the discretion of imposting.com's owner(s). Under no circumstances will imposting.com be liable for monetary reimbursement.
+    </p>
+
+</div>
+
+
+
+
+<div class="container">
+    <h3 id="cookie-policy">Cookie Policy</h3>
+
+    <p>        
+        Cookie Usage:
+        Cookies are stored in the browser to provide secure authentication for users and to protect forms with CSRF tokens. Local storage is used to store user preferences, such as cookie consent, to enhance the user experience.
+    </p>
+
+    <p>
+        Managing Cookie Preferences:
+        Since cookies are essential for authentication, deleting them from the browser will require users to re-authenticate for each request made to imposting.com.
+    </p>
+
+    <p>
+        
+        Contact Information
+        Official Contact Information:
+
+        Name: Climente Alin Ionel PFA
+        VAT Number: (RO)43000098
+        Registration Number: F22/1029/2020
+        EUID: ROONRC.F22/1029/2020
+        Location: Iași, Romania, Europe
+        Email: alinclimente@softgata.com
+    </p>
+
+</div>
+
+
+
+<div class="container">
+    <h3 id="dsa">Compliance with Digital Services Act (DSA)</h3>
+
+    <p>
+        While our app is primarily designed for scheduling posts on third-party platforms and currently serves a limited user base of under 10,000 users within the EU, we are committed to ensuring compliance with the Digital Services Act (DSA) through several key practices:
+    </p>
+
+    <p>
+        Content Monitoring: We manually monitor user-generated content to prevent misuse of our platform. Although our user base is small, we take proactive steps to address any illegal or harmful activities by banning users who violate our terms of service.
+    </p>
+
+    <p>
+        Transparency: Our app is open-source, with the code available on GitHub. This transparency allows users and the community to understand how our app operates, including our algorithms and data usage practices.
+    </p>
+
+    <p>
+        Data Privacy and Security: We prioritize the security and privacy of our users' data. Regular updates and continuous investigations are conducted to identify and mitigate potential security risks, ensuring that our app remains secure.
+    </p>
+
+    <p>
+        User Responsibility: Users are responsible for the content they schedule through our platform. We provide clear guidelines and terms of service to inform users of their responsibilities and the acceptable use of our app.
+    </p>
+
+    <p>
+        Risk Management: We continuously assess and update our app to address any potential issues, ensuring that our platform operates safely and securely for all users.
+    </p>
+
+    <p>
+        As we grow, we will continue to evaluate and enhance our compliance measures to align with the evolving requirements of the DSA and other relevant regulations.
+    </p>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

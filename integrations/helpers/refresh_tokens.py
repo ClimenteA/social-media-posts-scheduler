@@ -131,10 +131,69 @@ def refresh_access_token_for_facebook(integration: IntegrationsModel):
         integration.delete()
 
 
+def refresh_access_token_for_tiktok(integration: IntegrationsModel):
+    refresh_token = integration.refresh_token_value
+    if not refresh_token:
+        integration.delete()
+        return
+
+    try:
+        token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Cache-Control": "no-cache",
+        }
+
+        data = {
+            "client_key": settings.TIKTOK_CLIENT_ID,
+            "client_secret": settings.TIKTOK_CLIENT_SECRET,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        }
+
+        log.info(f"Refreshing access token for TikTok account {integration.account_id}")
+        response = requests.post(token_url, data=data, headers=headers)
+        response.raise_for_status()
+
+        new_token = response.json()
+
+        # Update the access token
+        integration.access_token = new_token["access_token"]
+
+        # Update refresh token if a new one is provided
+        if new_token.get("refresh_token"):
+            integration.refresh_token = new_token["refresh_token"]
+
+        # Set access token expiration (subtract 15 minutes for safety buffer)
+        expires_in = new_token.get("expires_in", 86400)  # Default to 24 hours if not provided
+        integration.access_expire = timezone.now() + timedelta(seconds=expires_in - 900)
+
+        # Set refresh token expiration if provided
+        if new_token.get("refresh_expires_in"):
+            refresh_expires_in = new_token["refresh_expires_in"]
+            integration.refresh_expire = timezone.now() + timedelta(seconds=refresh_expires_in - 900)
+
+        integration.save()
+        log.success(f"Access token refreshed for TikTok account {integration.account_id}")
+
+    except Exception as e:
+        log.error(f"Token refresh failed for TikTok account {integration.account_id}")
+        log.exception(e)
+
+        send_notification(
+            "ImPosting",
+            f"TikTok token refresh failed for account {integration.account_id}: {str(e)}",
+        )
+
+        integration.delete()
+
+
 refresh_methods = {
     Platform.X_TWITTER.value: refresh_access_token_for_x,
     Platform.FACEBOOK.value: refresh_access_token_for_facebook,
     Platform.LINKEDIN.value: refresh_access_token_for_linkedin,
+    Platform.TIKTOK.value: refresh_access_token_for_tiktok,
 }
 
 

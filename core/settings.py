@@ -13,10 +13,7 @@ load_dotenv(BASE_DIR / ".env")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    default="django-insecure-@ur(_!x(@5ps_lvfpe&myyzg=q3+x3-7hio(s2m=!p)uzw8#oj",
-)
+SECRET_KEY = os.environ["SECRET_KEY"]
 NOTIFICATION_API_KEY = os.getenv("NOTIFICATION_API_KEY")
 NOTIFICATION_API_URL = os.getenv("NOTIFICATION_API_URL")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
@@ -47,6 +44,11 @@ X_CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
 X_REDIRECT_URI = APP_URL + "/X/callback/"
 X_UNINSTALL_URI = APP_URL + "/X/uninstall/"
 
+TIKTOK_CLIENT_ID = os.getenv("TIKTOK_CLIENT_ID")
+TIKTOK_CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
+TIKTOK_REDIRECT_URI = APP_URL + "/tiktok/callback/"
+TIKTOK_UNINSTALL_URI = APP_URL + "/tiktok/uninstall/"
+
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "imposting.localhost", BASE_REDIRECT_URL]
 
@@ -76,6 +78,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
+    "storages",
 ]
 
 
@@ -130,6 +133,32 @@ USE_I18N = True
 
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Media files
+CLOUDFLARE_R2_BUCKET=os.getenv("CLOUDFLARE_R2_BUCKET")
+CLOUDFLARE_R2_BUCKET_ENDPOINT=os.getenv("CLOUDFLARE_R2_BUCKET_ENDPOINT")
+CLOUDFLARE_R2_ACCESS_KEY=os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
+CLOUDFLARE_R2_SECRET_KEY=os.getenv("CLOUDFLARE_R2_SECRET_KEY")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "core.storages.MediaFileStorage",
+        "OPTIONS": {
+            "bucket_name": CLOUDFLARE_R2_BUCKET,
+            "default_acl": "public-read",  # or "private"
+            "signature_version": "s3v4",
+            "endpoint_url": CLOUDFLARE_R2_BUCKET_ENDPOINT,
+            "access_key": CLOUDFLARE_R2_ACCESS_KEY,
+            "secret_key": CLOUDFLARE_R2_SECRET_KEY,
+        }
+    },
+     "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    }
+}
+
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -139,10 +168,9 @@ WHITENOISE_USE_FINDERS = True
 os.makedirs(STATIC_ROOT, exist_ok=True)
 
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = None
+MEDIA_ROOT = None
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Database
 

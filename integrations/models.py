@@ -1,7 +1,7 @@
 from django.db import models
 from core import settings
 from django.utils.translation import gettext_lazy as _
-from integrations.aes import AESCBC
+from integrations.helpers.aes import AESCBC
 
 
 class Platform(models.TextChoices):
@@ -9,6 +9,7 @@ class Platform(models.TextChoices):
     LINKEDIN = "LinkedIn", _("LinkedIn")
     FACEBOOK = "Facebook", _("Facebook")
     INSTAGRAM = "Instagram", _("Instagram")
+    TIKTOK = "TikTok", _("TikTok")
 
 
 class IntegrationsModel(models.Model):
@@ -19,6 +20,8 @@ class IntegrationsModel(models.Model):
     access_expire = models.DateTimeField(null=True, blank=True)
     refresh_expire = models.DateTimeField(null=True, blank=True)
     platform = models.CharField(max_length=1000, choices=Platform)
+    username = models.CharField(max_length=1000, null=True, blank=True)
+    avatar_url = models.CharField(max_length=100000, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         aes_cbc = AESCBC(settings.SECRET_KEY)

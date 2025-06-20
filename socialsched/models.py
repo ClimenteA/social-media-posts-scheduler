@@ -6,6 +6,31 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.utils.timezone import is_aware
 from enum import IntEnum
 from integrations.models import IntegrationsModel, Platform
+from django.utils.translation import gettext_lazy as _
+
+
+class PrivacyLevelOptions(models.TextChoices):
+    FOLLOWER_OF_CREATOR = "FOLLOWER_OF_CREATOR", _("Followers of Creator")
+    PUBLIC_TO_EVERYONE = "PUBLIC_TO_EVERYONE", _("Public to Everyone")
+    MUTUAL_FOLLOW_FRIENDS = "MUTUAL_FOLLOW_FRIENDS", _("Mutual Follow Friends")
+    SELF_ONLY = "SELF_ONLY", _("Self Only")
+
+
+class TikTokPostModel(models.Model):
+    post_id = models.IntegerField()
+    account_id = models.IntegerField()
+    nickname = models.CharField(max_length=1000)
+    max_video_post_duration_sec = models.IntegerField()
+    privacy_level_options = models.CharField(
+        max_length=1000, choices=PrivacyLevelOptions
+    )
+    allow_comment = models.BooleanField(blank=True, default=None)
+    allow_duet = models.BooleanField(blank=True, default=None)
+    allow_stitch = models.BooleanField(blank=True, default=None)
+    disclose_video_content = models.BooleanField()
+    your_brand = models.BooleanField()
+    branded_content = models.BooleanField()
+    ai_generated = models.BooleanField()
 
 
 class TextMaxLength(IntEnum):
@@ -16,8 +41,14 @@ class TextMaxLength(IntEnum):
     LINKEDIN = 3000
 
 
-def get_filename(_, filename: str):
-    return uuid.uuid4().hex + filename.lower()
+class MediaFileTypes(models.TextChoices):
+    VIDEO = "VIDEO", _("video")
+    IMAGE = "IMAGE", _("image")
+
+
+def get_filename(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return f"{instance.account_id}/{uuid.uuid4().hex}{ext}"
 
 
 class PostModel(models.Model):
@@ -33,22 +64,40 @@ class PostModel(models.Model):
         null=True,
         blank=True,
     )
-    process_image = models.BooleanField(blank=True, null=True, default=False)
-    
+    media_file_type = models.CharField(
+        max_length=50, blank=True, null=True, choices=MediaFileTypes
+    )
+
+    process_image = models.BooleanField(blank=True, null=True, default=True)
+    process_video = models.BooleanField(blank=True, null=True, default=True)
+    image_processed = models.BooleanField(blank=True, null=True, default=False)
+    video_processed = models.BooleanField(blank=True, null=True, default=False)
+
     post_on_x = models.BooleanField(blank=True, null=True, default=False)
     post_on_instagram = models.BooleanField(blank=True, null=True, default=False)
     post_on_facebook = models.BooleanField(blank=True, null=True, default=False)
     post_on_linkedin = models.BooleanField(blank=True, null=True, default=False)
-    
+    post_on_tiktok = models.BooleanField(blank=True, null=True, default=False)
+
     link_x = models.CharField(max_length=50000, blank=True, null=True)
     link_instagram = models.CharField(max_length=50000, blank=True, null=True)
     link_facebook = models.CharField(max_length=50000, blank=True, null=True)
     link_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    link_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
     error_x = models.CharField(max_length=50000, blank=True, null=True)
     error_instagram = models.CharField(max_length=50000, blank=True, null=True)
     error_facebook = models.CharField(max_length=50000, blank=True, null=True)
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
+    error_tiktok = models.CharField(max_length=50000, blank=True, null=True)
+
+    @property
+    def has_video(self):
+        return self.media_file_type == MediaFileTypes.VIDEO.value
+
+    @property
+    def has_image(self):
+        return self.media_file_type == MediaFileTypes.IMAGE.value
 
     def save(self, *args, **kwargs):
 
@@ -64,6 +113,7 @@ class PostModel(models.Model):
                 self.post_on_instagram,
                 self.post_on_facebook,
                 self.post_on_linkedin,
+                self.post_on_tiktok,
             ]
         ):
             raise ValueError("At least one platform must be selected for posting.")
@@ -78,9 +128,13 @@ class PostModel(models.Model):
 
         if self.media_file:
             ext = os.path.splitext(self.media_file.name)[1].lower()
-            if ext not in [".jpeg", ".jpg", ".png"]:
+            if ext == ".mp4":
+                self.media_file_type = MediaFileTypes.VIDEO.value
+            elif ext in [".jpeg", ".jpg", ".png"]:
+                self.media_file_type = MediaFileTypes.IMAGE.value
+            else:
                 raise ValueError(
-                    "Unsupported file type. Only JPEG, PNG images are allowed."
+                    "Unsupported file type. Only JPEG, PNG images and MP4 videos are allowed."
                 )
 
         postlen = len(self.description)
@@ -95,6 +149,12 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a X post is {TextMaxLength.X_BLUE}"
                 )
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext not in [".jpeg", ".jpg", ".png"]:
+                    raise ValueError(
+                        "Unsupported file type. Only JPEG, PNG images can be uploaded to X."
+                    )
 
         if self.post_on_instagram:
             ig_ok = IntegrationsModel.objects.filter(
@@ -108,6 +168,8 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a Instagram post is {TextMaxLength.INSTAGRAM}"
                 )
+            if not self.media_file:
+                raise ValueError("An image or a video is required for Instagram.")
 
         if self.post_on_facebook:
             fb_ok = IntegrationsModel.objects.filter(
@@ -134,6 +196,28 @@ class PostModel(models.Model):
                 raise ValueError(
                     f"Maximum length of a LinkedIn post is {TextMaxLength.LINKEDIN}"
                 )
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext not in [".jpeg", ".jpg", ".png"]:
+                    raise ValueError(
+                        "Unsupported file type. Only JPEG, PNG images can be uploaded to LinkedIn."
+                    )
+
+        if self.post_on_tiktok:
+            tk_ok = IntegrationsModel.objects.filter(
+                account_id=self.account_id, platform=Platform.TIKTOK.value
+            ).first()
+            if not tk_ok:
+                raise ValueError("Please got to Integrations and authorize TikTok app")
+
+            if self.media_file:
+                ext = os.path.splitext(self.media_file.name)[1].lower()
+                if ext != ".mp4":
+                    raise ValueError(
+                        "Unsupported file type. Only .mp4 videos can be uploaded to TikTok."
+                    )
+            else:
+                raise ValueError("A .mp4 video in reel format is needed for TikTok.")
 
         super().save(*args, **kwargs)
 

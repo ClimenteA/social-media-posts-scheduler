@@ -4,11 +4,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Min, Max
+from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
-from .image_processor.instagram_image import make_instagram_image
-from .models import PostModel
-from .forms import PostForm
+from integrations.helpers.utils import get_tiktok_creator_info
+from .models import PostModel, TikTokPostModel
+from .forms import PostForm, TikTokForm
 from .schedule_utils import (
     get_day_data,
     get_initial_month_placeholder,
@@ -44,14 +45,16 @@ def calendar(request):
         account_id=social_uid, scheduled_on__year=selected_year
     ).values(
         "scheduled_on",
-        "post_on_x",
         "post_on_instagram",
         "post_on_facebook",
+        "post_on_tiktok",
         "post_on_linkedin",
-        "link_x",
+        "post_on_x",
         "link_instagram",
         "link_facebook",
+        "link_tiktok",
         "link_linkedin",
+        "link_x",
     )
 
     year_dates = get_year_dates(selected_year)
@@ -142,11 +145,10 @@ def calendar(request):
     )
 
 
-@login_required
-def schedule_form(request, isodate):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
 
+
+def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = None):
+    
     today = timezone.now()
     scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
     prev_date = scheduled_on - timedelta(days=1)
@@ -155,24 +157,39 @@ def schedule_form(request, isodate):
         account_id=social_uid, scheduled_on__date=scheduled_on
     )
 
+    posts = PostModel.objects.filter(
+        account_id=social_uid, scheduled_on__date=scheduled_on
+    )
+
+
+
     show_form = today.date() <= scheduled_on
 
-    form = PostForm(initial={"scheduled_on": scheduled_on})
+    if form is None:
+        form = PostForm(initial={"scheduled_on": scheduled_on})
+
+    return {
+        "show_form": show_form,
+        "posts": posts,
+        "post_form": form,
+        "isodate": isodate,
+        "year": scheduled_on.year,
+        "current_date": scheduled_on,
+        "prev_date": prev_date,
+        "today": today.date().isoformat(),
+        "next_date": next_date,
+    }
+
+
+@login_required
+def schedule_form(request, isodate):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
 
     return render(
         request,
         "schedule.html",
-        context={
-            "show_form": show_form,
-            "posts": posts,
-            "post_form": form,
-            "isodate": isodate,
-            "year": scheduled_on.year,
-            "current_date": scheduled_on,
-            "prev_date": prev_date,
-            "today": today.date().isoformat(),
-            "next_date": next_date,
-        },
+        context=get_schedule_form_context(social_uid, isodate, form=None)
     )
 
 
@@ -184,19 +201,10 @@ def schedule_save(request, isodate):
     form = PostForm(request.POST, request.FILES)
 
     if not form.is_valid():
-        scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
-        posts = PostModel.objects.filter(
-            account_id=social_uid, scheduled_on__date=scheduled_on
-        )
-
         return render(
             request,
             "schedule.html",
-            context={
-                "posts": posts,
-                "post_form": form,
-                "scheduled_on": isodate,
-            },
+            context=get_schedule_form_context(social_uid, isodate, form),
         )
 
     try:
@@ -204,26 +212,24 @@ def schedule_save(request, isodate):
         post.account_id = social_uid
         post.save()
 
-        if post.process_image:
-            if (
-                post.media_file
-                and hasattr(post.media_file, "path")
-                and post.media_file.path
-            ):
-                make_instagram_image(post.media_file.path, post.description)
-            else:
-                post.media_file = make_instagram_image(None, post.description)
-                
-            post.save()
-
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            "Post was saved!",
-            extra_tags="✅ Success!",
-        )
-        return redirect(f"/schedule/{isodate}/")
+        if post.post_on_tiktok:
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Please fill TikTok video settings.",
+                extra_tags="ℹ️ Fill tiktok form",
+            )
+            return redirect(f"/tiktok-settings/{isodate}/{post.pk}")
+        else:
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Post was saved!",
+                extra_tags="✅ Success!",
+            )
+            return redirect(f"/schedule/{isodate}/")
     except Exception as err:
+        log.exception(err)
         messages.add_message(
             request,
             messages.ERROR,
@@ -240,7 +246,21 @@ def schedule_delete(request, post_id):
 
     post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
     isodate = post.scheduled_on.date().isoformat()
+
+    if any([post.link_facebook, post.link_instagram, post.link_linkedin, post.link_tiktok, post.link_x]):
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "You cannot delete a published post!",
+            extra_tags="🟥 Not allowed!",
+        )
+        return redirect(f"/schedule/{isodate}/")
+    
     post.delete()
+
+    # Deleting weak tiktok reference as well
+    TikTokPostModel.objects.filter(post_id=post_id, account_id=social_uid).delete()
+
     messages.add_message(
         request,
         messages.SUCCESS,
@@ -248,6 +268,79 @@ def schedule_delete(request, post_id):
         extra_tags="✅ Succes!",
     )
     return redirect(f"/schedule/{isodate}/")
+
+
+@login_required
+def tiktok_settings(request, isodate: str, post_id: int):
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
+
+    tiktok_data = get_tiktok_creator_info(social_uid)
+
+    form = TikTokForm(
+        initial={
+            "post_id": post_id,
+            "account_id": social_uid,
+            "nickname": tiktok_data["creator_nickname"],
+            "max_video_post_duration_sec": tiktok_data["max_video_post_duration_sec"],
+            "privacy_level_options": tiktok_data["privacy_level_options"],
+            "allow_comment": not tiktok_data["comment_disabled"],
+            "allow_duet": not tiktok_data["duet_disabled"],
+            "allow_stitch": not tiktok_data["stitch_disabled"],
+        }
+    )
+
+    return render(
+        request,
+        "tiktok_settings.html",
+        context={"post_id": post_id, "isodate": isodate, "tiktok_form": form},
+    )
+
+
+@login_required
+def tiktok_settings_save(request, isodate: str, post_id: int):
+
+    form = TikTokForm(request.POST)
+
+    if not form.is_valid():
+
+        log.error(form.errors.as_json())
+
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "Form had errors",
+            extra_tags="🟥 Error!",
+        )
+        return render(
+            request,
+            "tiktok_settings.html",
+            context={
+                "post_id": post_id,
+                "isodate": isodate,
+                "tiktok_form": form,
+            },
+        )
+
+    try:
+        form.save()
+        
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "Tiktok settings were saved!",
+            extra_tags="✅ Success!",
+        )
+        return redirect(f"/schedule/{isodate}/")
+    except Exception as err:
+        log.exception(err)
+        messages.add_message(
+            request,
+            messages.ERROR,
+            err,
+            extra_tags="🟥 Error!",
+        )
+        return redirect(f"/schedule/{isodate}/")
 
 
 def login_user(request):
@@ -258,3 +351,7 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     return redirect("login")
+
+
+def legal(request):
+    return render(request, "legal.html")

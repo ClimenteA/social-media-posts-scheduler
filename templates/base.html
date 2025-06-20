@@ -1,11 +1,16 @@
 {% load django_browser_reload %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" x-data="themeSwitch()" x-init="initTheme()" :data-theme="theme">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'pico.jade.min.css' %}">
     <link rel="stylesheet" href="{% static 'pico.colors.min.css' %}">
     <link rel="stylesheet" href="{% static 'bootstrap-icons.min.css' %}">
@@ -28,7 +33,7 @@
 
         <div x-cloak x-show="cookies == 'no'" style="margin-top: 15px; display: flex; justify-items: center;">
             <p>
-                This website uses cookies. You can read them <a href="#cookies">here</a>. If you don't agree, please leave the website.
+                This website uses cookies. You can read them <a href="/legal/#cookie-policy">here</a>. If you don't agree, please leave the website.
                 <a @click="cookies = 'yes'" style="margin-left: 15px; padding: 5px; border-radius: 3px; color: white; background-color: rgb(0, 126, 82);" href="#"><i aria-label="dismiss banner" class="bi bi-x"></i></a>
             </p>
         </div>
@@ -36,17 +41,23 @@
     </div>
 
 
-    <nav style="border-bottom: 1px solid #696868; padding-left: 1rem; padding-right: 1rem;">
+    <nav style="border-bottom: 1px solid #7b8495; padding-left: 1rem; padding-right: 1rem;">
         <ul>
             <li>
                 <a href="/" role="button">
                     <strong>IP</strong>
                 </a>
             </li>
+            <li>
+                <i x-cloak x-show="theme === 'dark'" @click="toggleTheme" class="bi bi-sun-fill"></i>
+                <i x-cloak x-show="theme === 'light'" @click="toggleTheme" class="bi bi-moon-fill"></i>
+            </li>
         </ul>
 
         <ul>
+
             {% if user.is_authenticated %}
+                    
             <li>
                 <a href="{% url 'calendar' %}">
                     Calendar
@@ -64,7 +75,30 @@
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
             </li>
+
+            {% else %}
+
+
+            <li>
+                <a href="{% url 'login' %}#faq">
+                    FAQ
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'login' %}#pricing">
+                    Pricing
+                </a>
+            </li>
+
+            <li>
+                <a target="_blank" href="https://softgata.com/about/">
+                    About
+                </a>
+            </li>
+
             {% endif %}
+        
         </ul>
     </nav>
 
@@ -75,6 +109,28 @@
         {% endblock %}
 
     </main>
+
+
+
+    <script>
+        function themeSwitch() {
+            return {
+                theme: localStorage.getItem('theme') || 'dark',
+
+                initTheme() {
+                    this.$watch('theme', value => {
+                        localStorage.setItem('theme', value);
+                        document.documentElement.setAttribute('data-theme', value);
+                    });
+                    document.documentElement.setAttribute('data-theme', this.theme);
+                },
+
+                toggleTheme() {
+                    this.theme = (this.theme === 'dark') ? 'light' : 'dark';
+                }
+            }
+        }
+    </script>
 
 
     {% if messages %}
@@ -96,6 +152,20 @@
     {% endif %}
 
     {% django_browser_reload_script %}
+
+
+    <footer style="border-top: 1px solid #7b8495; padding-left: 1rem; padding-right: 1rem; margin-top: 12rem;">
+
+        <div style="display: flex; justify-self: end; gap: 20px; font-size: 12px;">
+            <a href="{% url "legal" %}#privacy-policy">Privacy Policy</a>
+            <a href="{% url "legal" %}#terms-of-service">Terms of Service</a>
+            <a href="{% url "legal" %}#cookie-policy">Cookie Policy</a>
+            <a href="{% url "legal" %}#dsa">DSA Compliance</a>
+            <a target="_blank" href="https://softgata.com/">Built at SOFTGATA</a>
+        </div>
+
+    </footer>
+
 </body>
 
 </html>

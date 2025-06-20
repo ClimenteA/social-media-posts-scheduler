@@ -19,8 +19,9 @@
           Authorize app to make posts on your behalf by authorizing them in this page.
           For Facebook, Instagram you will need to have a Facebook public page created and linked to it an Instagram
           Professional/Business account.
-          The Meta Business Suite needs to be setup as well in order to post on Facebook/Instagram. For Linkedin you will need
-          a Company page. For X you don't need a Company or public page.
+          The Meta Business Suite needs to be setup as well in order to post on Facebook/Instagram. 
+          For TikTok you'll need a TikTok business account (you can also convert your personal account to a business acount).
+          For Linkedin you will need a Company page. For X you don't need a Company or public page.
           <span x-text="showFullText ? '..less' : '..more'"></span>
       </p>
   </div>
@@ -28,12 +29,65 @@
 </hgroup>
 
 
-<div class="container grid mt-4">
+<style>
+  .sm-col {
+    display: flex;
+    gap: 10px;
+  }
+
+  @media (max-width: 500px) {
+    .sm-col {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="container mt-4">
 
   <article>
-    <h4>
-      <i class="bi bi-facebook"></i> & <i class="bi bi-instagram"></i>
-    </h4>
+  
+    <header>
+    
+    
+    <div style="display: flex; gap: 10px;" class="sm-col">
+
+        <div style="display: flex; align-items: center; gap: 5px;">
+
+        <i style="font-size: 40px;" class="bi bi-facebook"></i>
+        
+        {% if facebook_avatar_url and facebook_username  %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ facebook_avatar_url }}" alt="{{ facebook_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ facebook_username }}</strong>
+        </div>
+        {% endif %}
+
+        </div>
+
+      <div style="display: flex; align-items: center; gap: 5px;">
+
+        <i style="font-size: 40px;" class="bi bi-instagram"></i>
+
+        {% if instagram_avatar_url and instagram_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ instagram_avatar_url }}" alt="{{ instagram_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ instagram_username }}</strong>
+        </div>
+        {% endif %}
+
+      </div>
+
+    </div>
+
+    </header>
+    
+    
     {% if meta_ok %}
     <p>Token expires at {{ meta_expire }}, but we can refresh the token automatically.</p> 
     {% else %}
@@ -56,7 +110,72 @@
 
 
   <article>
-    <h4><i class="bi bi-linkedin"></i></h4>
+
+    <header>
+
+      <div style="display: flex; align-items: center; gap: 5px;">
+
+        <i style="font-size: 40px;" class="bi bi-tiktok"></i>
+
+        {% if tiktok_avatar_url and tiktok_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ tiktok_avatar_url }}" alt="{{ tiktok_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ tiktok_username }}</strong>
+        </div>
+        {% endif %}
+
+      </div>
+
+    </header>
+
+
+    {% if tiktok_ok %}
+      <p>Token expires at {{ tiktok_expire }}, but we can refresh the token automatically.</p> 
+    {% else %}
+      <p>Please click Authorize button to allow this app to publish posts on your behalf.</p>
+    {% endif %}
+
+    <div style="display: flex; justify-content: end;">
+      <div style="display: flex; gap: 1rem;">
+        {% if tiktok_ok %}
+        <a href="{% url 'tiktok_uninstall' %}" role="button" class="outline secondary">
+          Deauthorize
+        </a>
+        {% endif %}
+        <a href="{% url 'tiktok_login' %}" role="button" {% if not tiktok_ok %} class="pico-background-red-600" {% endif %}>
+          Authorize
+        </a>
+      </div>
+    </div>
+
+  </article>
+
+
+  <article>
+
+    <header>
+
+      <div style="display: flex; align-items: center; gap: 5px;">
+
+        <i style="font-size: 40px;" class="bi bi-linkedin"></i>
+
+        {% if linkedin_avatar_url and linkedin_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ linkedin_avatar_url }}" alt="{{ linkedin_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ linkedin_username }}</strong>
+        </div>
+        {% endif %}
+
+      </div>
+      
+    </header>
+
 
     {% if linkedin_ok %}
     <p>Token expires at {{ linkedin_expire }} make sure to re-authorize until then.</p>
@@ -82,7 +201,27 @@
 
 
   <article>
-    <h4><i class="bi bi-twitter-x"></i></h4>
+    
+    <header>
+
+      <div style="display: flex; align-items: center; gap: 5px;">
+
+        <i style="font-size: 40px;" class="bi bi-twitter-x"></i>
+
+        {% if x_avatar_url and x_username %}
+        <div style="display: flex; gap: 10px;">
+          <figure>
+            <img src="{{ x_avatar_url }}" alt="{{ x_username }}" width="40px" height="40px"
+              style="border-radius: 5px; object-fit: cover; display: inline-block;">
+          </figure>
+          <strong>{{ x_username }}</strong>
+        </div>
+        {% endif %}
+
+      </div>
+
+    </header>
+
     {% if x_ok %}
     <p>Token expires at {{ x_expire }}, but we can refresh the token automatically.</p>
     {% else %}
