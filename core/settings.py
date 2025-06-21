@@ -50,14 +50,9 @@ TIKTOK_REDIRECT_URI = APP_URL + "/tiktok/callback/"
 TIKTOK_UNINSTALL_URI = APP_URL + "/tiktok/uninstall/"
 
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "imposting.localhost", BASE_REDIRECT_URL]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS").split(",") if h.strip()]
 
-CSRF_TRUSTED_ORIGINS = [
-    APP_URL,
-    "https://imposting.localhost",
-    "http://imposting.localhost",
-]
-
+CSRF_TRUSTED_ORIGINS = [h.strip() for h in os.getenv("CSRF_TRUSTED_ORIGINS").split(",") if h.strip()]
 
 # INTERNAL_IPS = []
 

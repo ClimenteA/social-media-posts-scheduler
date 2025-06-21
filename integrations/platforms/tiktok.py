@@ -226,7 +226,7 @@ class TikTokPoster:
                 headers=self.headers,
                 json={"publish_id": publish_id},
             )
-            # log.debug(upload_status_response.json())
+            log.debug(upload_status_response.json())
             upload_status_response.raise_for_status()
             upload_status = upload_status_response.json()["data"]["status"]
 
