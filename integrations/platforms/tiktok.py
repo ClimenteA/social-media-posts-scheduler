@@ -17,11 +17,14 @@ from .common import (
 
 @sync_to_async
 def get_tiktok_settings(post_id: int, account_id: int):
-    tiktok_settings = TikTokPostModel.objects.filter(
-        post_id=post_id, account_id=account_id
-    ).get()
-    return tiktok_settings
-
+    try:
+        tiktok_settings = TikTokPostModel.objects.filter(
+            post_id=post_id, account_id=account_id
+        ).get()
+        return tiktok_settings
+    except Exception as err:
+        log.exception(err)
+        
 
 @dataclass
 class TikTokPoster:
@@ -157,11 +160,9 @@ class TikTokPoster:
             raise ValueError(f"Invalid video file or corrupted metadata: {e}")
 
     async def initialize_upload(
-        self, account_id: int, post_id: int, post_text: str, media_path: str
+        self, post_text: str, media_path: str, tiktok_settings: TikTokPostModel
     ):
 
-        tiktok_settings = await get_tiktok_settings(post_id, account_id)
-        
         video_size = os.path.getsize(media_path)
         chunk_size, total_chunk_count = self.calculate_chunks(video_size)
 
@@ -242,7 +243,7 @@ class TikTokPoster:
 
         return upload_status
 
-    async def make_post(self, account_id: int, post_id: int, post_text: str, media_path: str):
+    async def make_post(self, account_id: int, post_text: str, media_path: str, tiktok_settings: TikTokPostModel):
 
         creator_info = self.get_creator_info()
         video_duration = self.get_video_duration(media_path)
@@ -252,7 +253,7 @@ class TikTokPoster:
             )
 
         publish_id, upload_url, video_size = await self.initialize_upload(
-            account_id, post_id, post_text, media_path
+            post_text, media_path, tiktok_settings
         )
         self.upload_file(media_path, video_size, upload_url, publish_id, account_id)
 
@@ -289,8 +290,14 @@ async def post_on_tiktok(
 
     if integration:
         try:
+
+            tiktok_settings = await get_tiktok_settings(post_id, account_id)
+            if tiktok_settings is None:
+                raise ValueError("Not posted because TikTok form was not completed.")
+
             poster = TikTokPoster(integration)
-            post_url = await poster.make_post(account_id, post_id, post_text, media_path)
+            post_url = await poster.make_post(account_id, post_text, media_path, tiktok_settings)
+            
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:
             err = e

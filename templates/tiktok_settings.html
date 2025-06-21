@@ -16,7 +16,12 @@
 
         <hgroup>
             <h4>TikTok Video Settings</h4>
-            <p>Manage who can view and interact with your tiktok video, and disclose promotions.</p>
+            <p>
+                Manage who can view and interact with your tiktok video, and disclose promotions.
+                <strong>
+                    Without this form completed your video will not be posted on TikTok.
+                </strong> 
+            </p>
         </hgroup>
 
         {{ tiktok_form.post_id.as_hidden }}
@@ -155,6 +160,10 @@
     </form>
 
 </article>
+
+
+{% include 'components/posts.html' with posts=posts %}
+
 
 
 <script>

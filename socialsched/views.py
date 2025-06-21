@@ -1,3 +1,4 @@
+from zoneinfo import ZoneInfo
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -195,6 +196,8 @@ def schedule_form(request, isodate):
 
 @login_required
 def schedule_save(request, isodate):
+    now_utc = timezone.now()
+
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
@@ -210,6 +213,23 @@ def schedule_save(request, isodate):
     try:
         post: PostModel = form.save(commit=False)
         post.account_id = social_uid
+
+        # Delay schedule_on with time it took for uploading the file
+        if post.scheduled_on:
+            # Just to make sure user completed the second form
+            if post.post_on_tiktok:
+                post.scheduled_on = post.scheduled_on + timedelta(minutes=30)
+            else:
+                post.scheduled_on = post.scheduled_on + timedelta(minutes=5)
+
+            target_tz = ZoneInfo(post.post_timezone)
+            scheduled_aware = post.scheduled_on.replace(tzinfo=target_tz)
+            now_in_target_tz = now_utc.astimezone(target_tz)
+
+            if now_in_target_tz > scheduled_aware:
+                delay = now_in_target_tz - scheduled_aware
+                post.scheduled_on = post.scheduled_on + delay
+        
         post.save()
 
         if post.post_on_tiktok:
@@ -275,6 +295,8 @@ def tiktok_settings(request, isodate: str, post_id: int):
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
+    post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
+
     tiktok_data = get_tiktok_creator_info(social_uid)
 
     form = TikTokForm(
@@ -293,12 +315,23 @@ def tiktok_settings(request, isodate: str, post_id: int):
     return render(
         request,
         "tiktok_settings.html",
-        context={"post_id": post_id, "isodate": isodate, "tiktok_form": form},
+        context={
+            "post_id": post_id, 
+            "isodate": isodate, 
+            "tiktok_form": form,
+            "posts": [post]
+        },
     )
 
 
 @login_required
 def tiktok_settings_save(request, isodate: str, post_id: int):
+    now_utc = timezone.now()
+
+    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
+    social_uid = user_social_auth.pk
+
+    post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
 
     form = TikTokForm(request.POST)
 
@@ -324,7 +357,17 @@ def tiktok_settings_save(request, isodate: str, post_id: int):
 
     try:
         form.save()
-        
+
+        # Delay schedule_on with time it took for completing the tiktok form
+        if post.scheduled_on:
+            target_tz = ZoneInfo(post.post_timezone)
+            scheduled_aware = post.scheduled_on.replace(tzinfo=target_tz)
+            now_in_target_tz = now_utc.astimezone(target_tz)
+            if now_in_target_tz > scheduled_aware:
+                delay = now_in_target_tz - scheduled_aware
+                post.scheduled_on = post.scheduled_on + delay
+                post.save()
+
         messages.add_message(
             request,
             messages.SUCCESS,

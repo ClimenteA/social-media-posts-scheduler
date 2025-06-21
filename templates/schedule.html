@@ -53,7 +53,7 @@
                     {{ post_form.scheduled_on }}
                     {{ post_form.scheduled_on.errors }}
                 </label>
-    
+
                 <label style="max-width: fit-content;" for="id_scheduled_on_time">
                     At time:
                     <input type="time" id="id_scheduled_on_time" 
@@ -132,7 +132,7 @@
             
         </div>
 
-        <div x-data="emojiPicker()">
+        <div x-data="emojiPicker">
 
             <label for="{{ post_form.description.id_for_label }}">
                 Title/Post/Caption:
@@ -195,168 +195,9 @@
 
 {% endif %}
 
-<div class="mt-4"></div>
-<div style="max-width: 900px; margin: 0 auto;">
 
-    {% for post in posts %}
-    <article>
-        <div style="display: flex; justify-content: end;">
-            <small class="pico-color-slate-450">{{ post.scheduled_on }}</small>
-        </div>
+{% include 'components/posts.html' with posts=posts %}
 
-        <p>{{ post.description }}</p>
-
-        
-        {% if post.media_file %}
-
-
-            {% if post.has_image %}
-            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
-                <div x-show="!fullScreen">
-                    <img @click="fullScreen = true" src="{{ post.media_file.url }}" alt="Media file"
-                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                </div>
-
-                <dialog :open="fullScreen" @click="fullScreen = false">
-                    <img src="{{ post.media_file.url }}" alt="Media file"
-                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                </dialog>
-            </div>
-            {% endif %}
-    
-            {% if post.has_video %}
-            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
-                <div x-show="!fullScreen">
-                    <video @click="fullScreen = true" controls
-                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                        <source src="{{ post.media_file.url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </div>
-
-                <dialog :open="fullScreen" @click="fullScreen = false">
-                    <video controls autoplay
-                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                        <source src="{{ post.media_file.url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </dialog>
-            </div>
-            {% endif %}
-    
-
-        {% endif %}
-
-        <div class="mt-1">
-
-            <p class="pico-color-slate-450">Links:</p>
-
-            <div style="display: flex; align-items: center; gap: 1rem; margin-top: -15px;">
-                
-                <!-- Posted platforms: -->
-
-                {% if post.post_on_instagram %}
-                <span data-tooltip="pending">
-                    <i class="bi bi-instagram"></i>
-                </span>
-                {% endif %}
-
-                {% if post.post_on_facebook %}
-                <span data-tooltip="pending">
-                    <i class="bi bi-facebook"></i>
-                </span>
-                {% endif %}
-
-                {% if post.post_on_x %}
-                <span data-tooltip="pending">
-                    <i class="bi bi-twitter-x"></i>
-                </span>
-                {% endif %}
-
-                {% if post.post_on_linkedin %}
-                <span data-tooltip="pending">
-                    <i class="bi bi-linkedin"></i>
-                </span>
-                {% endif %}
-
-
-                {% if post.post_on_tiktok %}
-                <span data-tooltip="pending">
-                    <i class="bi bi-tiktok"></i>
-                </span>
-                {% endif %}
-
-
-                <!-- Posted links: -->
-
-                {% if post.link_instagram %}
-                <a data-tooltip="posted" target="_blank" href="{{ post.link_instagram }}"><i class="bi bi-instagram"></i></a>
-                {% endif %}
-
-                {% if post.link_facebook %}
-                <a data-tooltip="posted" target="_blank" href="{{ post.link_facebook }}"><i class="bi bi-facebook"></i></a>
-                {% endif %}
-
-                {% if post.link_x %}
-                <a data-tooltip="posted" target="_blank" href="{{ post.link_x }}"><i class="bi bi-twitter-x"></i></a>
-                {% endif %}
-
-                {% if post.link_linkedin %}
-                <a data-tooltip="posted" target="_blank" href="{{ post.link_linkedin }}"><i class="bi bi-linkedin"></i></a>
-                {% endif %}
-
-                {% if post.link_tiktok %}
-                <a data-tooltip="posted" target="_blank" href="{{ post.link_tiktok }}"><i class="bi bi-tiktok"></i></a>
-                {% endif %}
-
-                <!-- Errors -->
-
-                {% if post.error_instagram %}
-                <span data-tooltip="Not posted got error: {{ post.error_instagram }}" class="pico-color-red-500">
-                    <i class="bi bi-instagram"></i>
-                </span>
-                {% endif %}
-
-                {% if post.error_facebook %}
-                <span data-tooltip="Not posted got error: {{post.error_facebook }}" class="pico-color-red-500">
-                    <i class="bi bi-facebook"></i>
-                </span>
-                {% endif %}
-
-                {% if post.error_x %}
-                <span data-tooltip="Not posted got error: {{post.error_x }}" class="pico-color-red-500">
-                    <i class="bi bi-twitter-x"></i>
-                </span>
-                {% endif %}
-
-                {% if post.error_linkedin %}
-                <span data-tooltip="Not posted got error: {{post.error_linkedin }}" class="pico-color-red-500">
-                    <i class="bi bi-linkedin"></i>
-                </a>
-                {% endif %}
-
-                {% if post.error_tiktok %}
-                <span data-tooltip="Not posted got error: {{post.error_tiktok }}" class="pico-color-red-500">
-                    <i class="bi bi-tiktok"></i>
-                </a>
-                {% endif %}
-
-            </div>
-
-        </div>
-
-
-        <div style="display: flex; gap: 1rem; justify-content: end;">
-            <a href="{% url 'schedule_delete' post_id=post.id %}" class="pico-color-red-500" style="text-decoration: none;">
-                <i class="bi bi-trash"></i> Delete
-            </a>
-        </div>
-
-
-    </article>
-    {% endfor %}
-
-</div>
 
 <script>
 
@@ -397,14 +238,17 @@
 
     function emojiPicker() {
         let activeInput = null;
-
+        
         return {
+            getTheme() {
+                return localStorage.getItem('theme');
+            },
             showEmojiPicker: false,
             togglePicker() {
                 this.showEmojiPicker = !this.showEmojiPicker;
                 if (!document.getElementById('picker')) {
                     const pickerOptions = {
-                        theme: "dark",
+                        theme: this.getTheme(),
                         onEmojiSelect: (emoji) => {
                             if (activeInput) {
                                 activeInput.value += emoji.native;

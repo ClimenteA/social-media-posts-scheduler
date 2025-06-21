@@ -104,6 +104,7 @@ class FacebookPoster:
         finish_response.raise_for_status()
         # log.debug(finish_response.json())
 
+        time.sleep(5)
         max_checks = max(30, int(file_size_mb * 2))  # More time for larger files
         for _ in range(max_checks):
             status_res = requests.get(

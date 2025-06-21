@@ -8,14 +8,11 @@ stop_event = Event()
 
 
 def runner():
-    while not stop_event.is_set():
-        try:
-            post_scheduled_posts()
-            # Sleep up to 5 seconds or exit early if stop_event is set
-            stop_event.wait(5)
-        except Exception as err:
-            log.exception(err)
-            continue
+    buffer_seconds = 0
+    while not stop_event.is_set():        
+        buffer_seconds = post_scheduled_posts(buffer_seconds)
+        stop_event.wait(5)
+        buffer_seconds += 5
 
 
 class Command(BaseCommand):
