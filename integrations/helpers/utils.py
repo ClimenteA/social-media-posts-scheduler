@@ -24,15 +24,16 @@ def image_url_to_base64(url: str) -> str | None:
         return url
 
 
-def get_filepath_from_cloudflare_url(url: str, ):
+
+def get_filepath_from_cloudflare_url(url: str):
 
     ext = os.path.splitext(url)[1].lower()
     ext = ext.split("?")[0]
+    filepath = f"/tmp/{uuid.uuid4().hex}{ext}"
 
     response = requests.get(url)
     response.raise_for_status()
 
-    filepath = f"/tmp/{uuid.uuid4().hex}{ext}"
     with open(filepath, "wb") as f:
         f.write(response.content)
 

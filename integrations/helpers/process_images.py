@@ -30,11 +30,14 @@ def process_images():
         
         for post in posts:
             try:
-                image_path = get_filepath_from_cloudflare_url(post.media_file.url)
+                image_path = None
+                if post.media_file:
+                    image_path = get_filepath_from_cloudflare_url(post.media_file.url)                
+
                 image_path = make_image_postable(image_path, post.description)
 
                 log.debug(f"Processing {image_path}...")
-        
+
                 with open(image_path, "rb") as f:
                     post.media_file = File(f)
                     post.image_processed = True

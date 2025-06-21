@@ -67,7 +67,9 @@ def post_scheduled_posts(buffer_seconds: int):
             for post in posts:
                 text = post.description
                 media_type = post.media_file_type
-                media_path = get_filepath_from_cloudflare_url(post.media_file.url)
+                media_path = None
+                if post.media_file:
+                    media_path = get_filepath_from_cloudflare_url(post.media_file.url)
                 media_url = None
                 if post.media_file:
                     media_url = f"{settings.APP_URL}/proxy-media-file/{os.path.basename(media_path)}" 

@@ -41,6 +41,7 @@ class InstagramPoster:
             "access_token": self.access_token,
         }
         response = requests.get(url, params=params)
+        log.debug(response.json())
         response.raise_for_status()
         return response.json()["permalink"]
 
@@ -53,6 +54,7 @@ class InstagramPoster:
             "access_token": self.access_token,
         }
         container = requests.post(self.media_url, params=params)
+        log.debug(container.json())
         container.raise_for_status()
 
         publish = requests.post(
@@ -60,6 +62,7 @@ class InstagramPoster:
             headers={"Authorization": f"Bearer {self.access_token}"},
             json={"creation_id": container.json()["id"]},
         )
+        log.debug(publish.json())
         publish.raise_for_status()
 
         return self.get_post_url(publish.json()["id"])
@@ -80,6 +83,7 @@ class InstagramPoster:
                 "media_type": "REELS",
             },
         )
+        log.debug(container_response.json())
         container_response.raise_for_status()
         container_id = container_response.json()["id"]
 
@@ -94,6 +98,7 @@ class InstagramPoster:
                     "access_token": self.access_token,
                 },
             )
+            log.debug(status_resp.json())
             status_resp.raise_for_status()
             status = status_resp.json().get("status_code")
 
@@ -138,8 +143,9 @@ def update_instagram_link(post_id: int, post_url: str, err: str):
     post.link_instagram = post_url
     if err != "None":
         post.error_instagram = err
-        post.scheduled_on += timedelta(days=1)
         post.retries_instagram += 1
+        delay_minutes = 5 * (2 ** (post.retries_instagram - 1))
+        post.scheduled_on += timedelta(minutes=delay_minutes)
         post.post_on_instagram = True
     else:
         post.post_on_instagram = False
@@ -181,5 +187,5 @@ async def post_on_instagram(
 
     retries_instagram = await update_instagram_link(post_id, post_url, str(err)[0:50])
 
-    if retries_instagram >= 10:
+    if retries_instagram >= 20:
         await sync_to_async(integration.delete)()

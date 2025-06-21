@@ -46,6 +46,7 @@ class FacebookPoster:
             "access_token": self.access_token,
         }
         response = requests.post(self.feed_url, json=payload)
+        log.debug(response.json())
         response.raise_for_status()
         return self.get_post_url(response.json()["id"])
 
@@ -57,6 +58,7 @@ class FacebookPoster:
             "access_token": self.access_token,
         }
         response = requests.post(self.feed_url, json=payload)
+        log.debug(response.json())
         response.raise_for_status()
         return self.get_post_url(response.json()["id"])
 
@@ -70,7 +72,7 @@ class FacebookPoster:
                 "access_token": self.access_token,
             },
         )
-        # log.debug(upload_start_response.json())
+        log.debug(upload_start_response.json())
         upload_start_response.raise_for_status()
         upload_start_data = upload_start_response.json()
         video_id = upload_start_data["video_id"]
@@ -89,7 +91,7 @@ class FacebookPoster:
                 },
                 data=file,
             )
-            # log.debug(upload_initiated_response.json())
+            log.debug(upload_initiated_response.json())
             upload_initiated_response.raise_for_status()
 
         finish_response = requests.post(
@@ -101,8 +103,8 @@ class FacebookPoster:
                 "description": text,
             },
         )
+        log.debug(finish_response.json())
         finish_response.raise_for_status()
-        # log.debug(finish_response.json())
 
         time.sleep(5)
         max_checks = max(30, int(file_size_mb * 2))  # More time for larger files
@@ -114,7 +116,6 @@ class FacebookPoster:
             log.debug(status_res.json())
             status_res.raise_for_status()
             status_data = status_res.json().get("status", {})
-            log.debug(status_data)
 
             # Check processing/publishing status directly
             processing = status_data.get("processing_phase", {}).get("status")
@@ -141,6 +142,7 @@ class FacebookPoster:
                 "access_token": self.access_token,
             },
         )
+        log.debug(reel_link_response.json())
         reel_link_response.raise_for_status()
         reel_info = reel_link_response.json()
         reel_link = reel_info.get("permalink_url")
@@ -154,7 +156,7 @@ class FacebookPoster:
             "access_token": self.access_token,
         }
         response = requests.post(self.photos_url, json=payload)
-        # log.debug(response.json())
+        log.debug(response.json())
         response.raise_for_status()
 
         return self.get_post_url(response.json()["post_id"])
@@ -185,8 +187,9 @@ def update_facebook_link(post_id: int, post_url: str, err: str):
     post.link_facebook = post_url
     if err != "None":
         post.error_facebook = err
-        post.scheduled_on += timedelta(days=1)
         post.retries_facebook += 1
+        delay_minutes = 5 * (2 ** (post.retries_facebook - 1))
+        post.scheduled_on += timedelta(minutes=delay_minutes)
         post.post_on_facebook = True
     else:
         post.post_on_facebook = False
@@ -225,5 +228,5 @@ async def post_on_facebook(
         err = "(Re-)Authorize Facebook on Integrations page"
 
     retries_facebook = await update_facebook_link(post_id, post_url, str(err)[0:50])
-    if retries_facebook >= 10:
+    if retries_facebook >= 20:
         await sync_to_async(integration.delete)()

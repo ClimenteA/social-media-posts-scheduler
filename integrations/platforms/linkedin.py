@@ -70,6 +70,8 @@ class LinkedinPoster:
             headers=self.headers,
             json=upload_payload,
         )
+        log.debug(upload_response.json())
+        upload_response.raise_for_status()
         upload_data = upload_response.json()
         upload_url = upload_data["value"]["uploadMechanism"][
             "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
@@ -77,7 +79,7 @@ class LinkedinPoster:
         asset = upload_data["value"]["asset"]
 
         with open(filepath, "rb") as image_file:
-            requests.put(
+            response = requests.put(
                 upload_url,
                 headers={
                     "Authorization": f"Bearer {self.access_token}",
@@ -85,7 +87,9 @@ class LinkedinPoster:
                 },
                 data=image_file,
             )
-
+            log.debug(response.content)
+            response.raise_for_status()
+        
         return asset
 
     def make_post(self, text: str, media_path: str = None):
@@ -108,6 +112,8 @@ class LinkedinPoster:
             headers=self.headers,
             json=payload,
         )
+        log.debug(response.json())
+        response.raise_for_status()
 
         return f"https://www.linkedin.com/feed/update/{response.json()['id']}"
 
@@ -119,8 +125,9 @@ def update_linkedin_link(post_id: int, post_url: str, err: str):
     post.link_linkedin = post_url
     if err != "None":
         post.error_linkedin = err
-        post.scheduled_on += timedelta(days=1)
         post.retries_linkedin += 1
+        delay_minutes = 5 * (2 ** (post.retries_linkedin - 1))
+        post.scheduled_on += timedelta(minutes=delay_minutes)
         post.post_on_linkedin = True
     else:
         post.post_on_linkedin = False
@@ -159,5 +166,5 @@ async def post_on_linkedin(
         err = "(Re-)Authorize Linkedin on Integrations page"
 
     retries_linkedin = await update_linkedin_link(post_id, post_url, str(err)[0:50])
-    if retries_linkedin >= 10:
+    if retries_linkedin >= 20:
         await sync_to_async(integration.delete)()

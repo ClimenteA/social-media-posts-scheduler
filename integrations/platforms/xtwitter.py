@@ -115,8 +115,9 @@ def update_x_link(post_id: int, post_url: str, err: str):
     post.link_x = post_url
     if err != "None":
         post.error_x = err
-        post.scheduled_on += timedelta(days=1)
         post.retries_x += 1
+        delay_minutes = 5 * (2 ** (post.retries_x - 1))
+        post.scheduled_on += timedelta(minutes=delay_minutes)
         post.post_on_x = True
     else:
         post.post_on_x = False
@@ -154,5 +155,5 @@ async def post_on_x(
         err = "(Re-)Authorize X on Integrations page"
 
     retries_x = await update_x_link(post_id, post_url, str(err)[0:50])
-    if retries_x >= 10:
+    if retries_x >= 20:
         await sync_to_async(integration.delete)()

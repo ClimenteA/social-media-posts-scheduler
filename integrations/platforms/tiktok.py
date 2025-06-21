@@ -72,7 +72,7 @@ class TikTokPoster:
         creator_info_url = f"{self.base_url}/post/publish/creator_info/query/"
 
         response = requests.post(creator_info_url, headers=self.headers)
-        # log.debug(f"Tiktok creator info response: {response.json()}")
+        log.debug(response.json())
         response.raise_for_status()
         data = response.json()
 
@@ -189,7 +189,7 @@ class TikTokPoster:
                 },
             },
         )
-        # log.debug(init_upload_response.json())
+        log.debug(init_upload_response.json())
         init_upload_response.raise_for_status()
 
         init_upload = init_upload_response.json()
@@ -266,8 +266,9 @@ def update_tiktok_link(post_id: int, post_url: str, err: str):
     post.link_tiktok = post_url
     if err != "None":
         post.error_tiktok = err
-        post.scheduled_on += timedelta(days=1)
         post.retries_tiktok += 1
+        delay_minutes = 5 * (2 ** (post.retries_tiktok - 1))
+        post.scheduled_on += timedelta(minutes=delay_minutes)
         post.post_on_tiktok = True
     else:
         post.post_on_tiktok = False
@@ -310,5 +311,5 @@ async def post_on_tiktok(
         err = "(Re-)Authorize TikTok on Integrations page"
 
     retries_tiktok = await update_tiktok_link(post_id, post_url, str(err)[0:50])
-    if retries_tiktok >= 10:
+    if retries_tiktok >= 20:
         await sync_to_async(integration.delete)()
