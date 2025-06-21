@@ -51,6 +51,7 @@ Shortcut make commands:
 - `make migrate-all` - migrate all models changes;
 - `make purge-db` - delete all data and migration dirs;
 - `make poster` - start post scheduler;
+- `docker network create web` - one time thing;
 - `make start` - start app in docker;
 - `make stop` - stop app in docker;
 - `make build` - build app in docker;
