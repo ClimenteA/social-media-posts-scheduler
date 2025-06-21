@@ -91,6 +91,13 @@ class PostModel(models.Model):
     error_linkedin = models.CharField(max_length=50000, blank=True, null=True)
     error_tiktok = models.CharField(max_length=50000, blank=True, null=True)
 
+    retries_x = models.IntegerField(blank=True, null=True, default=0)
+    retries_instagram = models.IntegerField(blank=True, null=True, default=0)
+    retries_facebook = models.IntegerField(blank=True, null=True, default=0)
+    retries_linkedin = models.IntegerField(blank=True, null=True, default=0)
+    retries_tiktok = models.IntegerField(blank=True, null=True, default=0)
+
+
     @property
     def has_video(self):
         return self.media_file_type == MediaFileTypes.VIDEO.value

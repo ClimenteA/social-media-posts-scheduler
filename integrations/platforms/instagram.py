@@ -1,6 +1,7 @@
 import os
 import time
 import requests
+from datetime import timedelta
 from core.logger import log, send_notification
 from dataclasses import dataclass
 from asgiref.sync import sync_to_async
@@ -135,9 +136,16 @@ class InstagramPoster:
 def update_instagram_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_instagram = post_url
-    post.post_on_instagram = False
-    post.error_instagram = None if err == "None" else err
+    if err != "None":
+        post.error_instagram = err
+        post.scheduled_on += timedelta(days=1)
+        post.retries_instagram += 1
+        post.post_on_instagram = True
+    else:
+        post.post_on_instagram = False
+        post.error_instagram = None
     post.save(skip_validation=True)
+    return post.retries_instagram
 
 
 async def post_on_instagram(
@@ -168,8 +176,10 @@ async def post_on_instagram(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize Instagram on Integrations page"
 
-    await update_instagram_link(post_id, post_url, str(err)[0:50])
+    retries_instagram = await update_instagram_link(post_id, post_url, str(err)[0:50])
+
+    if retries_instagram >= 10:
+        await sync_to_async(integration.delete)()

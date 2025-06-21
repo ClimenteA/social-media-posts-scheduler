@@ -2,6 +2,7 @@ import os
 import re
 import time
 import requests
+from datetime import timedelta
 from core.logger import log, send_notification
 from asgiref.sync import sync_to_async
 from dataclasses import dataclass
@@ -109,9 +110,10 @@ class FacebookPoster:
                 url=f"https://graph.facebook.com/{self.api_version}/{video_id}",
                 params={"fields": "status", "access_token": self.access_token},
             )
+            log.debug(status_res.json())
             status_res.raise_for_status()
             status_data = status_res.json().get("status", {})
-            # log.debug(status_data)
+            log.debug(status_data)
 
             # Check processing/publishing status directly
             processing = status_data.get("processing_phase", {}).get("status")
@@ -180,9 +182,16 @@ class FacebookPoster:
 def update_facebook_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_facebook = post_url
-    post.post_on_facebook = False
-    post.error_facebook = None if err == "None" else err
+    if err != "None":
+        post.error_facebook = err
+        post.scheduled_on += timedelta(days=1)
+        post.retries_facebook += 1
+        post.post_on_facebook = True
+    else:
+        post.post_on_facebook = False
+        post.error_facebook = None
     post.save(skip_validation=True)
+    return post.retries_facebook
 
 
 async def post_on_facebook(
@@ -211,8 +220,9 @@ async def post_on_facebook(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize Facebook on Integrations page"
 
-    await update_facebook_link(post_id, post_url, str(err)[0:50])
+    retries_facebook = await update_facebook_link(post_id, post_url, str(err)[0:50])
+    if retries_facebook >= 10:
+        await sync_to_async(integration.delete)()

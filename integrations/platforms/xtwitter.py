@@ -1,4 +1,5 @@
 import base64
+from datetime import timedelta
 from typing import Literal
 from core import settings
 from core.logger import log, send_notification
@@ -112,9 +113,17 @@ class XPoster:
 def update_x_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_x = post_url
-    post.post_on_x = False
-    post.error_x = None if err == "None" else err
+    if err != "None":
+        post.error_x = err
+        post.scheduled_on += timedelta(days=1)
+        post.retries_x += 1
+        post.post_on_x = True
+    else:
+        post.post_on_x = False
+        post.error_x = None
     post.save(skip_validation=True)
+    return post.retries_x
+
 
 
 async def post_on_x(
@@ -141,8 +150,9 @@ async def post_on_x(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize X on Integrations page"
 
-    await update_x_link(post_id, post_url, str(err)[0:50])
+    retries_x = await update_x_link(post_id, post_url, str(err)[0:50])
+    if retries_x >= 10:
+        await sync_to_async(integration.delete)()

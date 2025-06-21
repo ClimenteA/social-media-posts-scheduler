@@ -3,6 +3,7 @@ import time
 import math
 import ffmpeg
 import requests
+from datetime import timedelta
 from core.logger import log, send_notification
 from dataclasses import dataclass
 from integrations.models import IntegrationsModel, Platform
@@ -262,9 +263,16 @@ class TikTokPoster:
 def update_tiktok_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_tiktok = post_url
-    post.post_on_tiktok = False
-    post.error_tiktok = None if err == "None" else err
+    if err != "None":
+        post.error_tiktok = err
+        post.scheduled_on += timedelta(days=1)
+        post.retries_tiktok += 1
+        post.post_on_tiktok = True
+    else:
+        post.post_on_tiktok = False
+        post.error_tiktok = None
     post.save(skip_validation=True)
+    return post.retries_tiktok
 
 
 async def post_on_tiktok(
@@ -291,8 +299,9 @@ async def post_on_tiktok(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize TikTok on Integrations page"
 
-    await update_tiktok_link(post_id, post_url, str(err)[0:50])
+    retries_tiktok = await update_tiktok_link(post_id, post_url, str(err)[0:50])
+    if retries_tiktok >= 10:
+        await sync_to_async(integration.delete)()

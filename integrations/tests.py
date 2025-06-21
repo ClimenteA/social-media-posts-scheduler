@@ -119,8 +119,9 @@ class TestPostingOnSocials(TestCase):
 
         post_text = "Test"
         media_path = "./static/imposting-video-reel.mp4"
+        # media_path = "/home/alinclimente/Videos/test-reel.mp4"
 
-        post_url = poster.make_post(post_text, media_path=media_path)
+        post_url = poster.make_post(post_text, media_type="VIDEO", media_path=media_path)
 
         self.assertIsNotNone(post_url)
 

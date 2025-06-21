@@ -1,4 +1,5 @@
 import requests
+from datetime import timedelta
 from core.logger import log, send_notification
 from dataclasses import dataclass
 from integrations.models import IntegrationsModel, Platform
@@ -111,13 +112,21 @@ class LinkedinPoster:
         return f"https://www.linkedin.com/feed/update/{response.json()['id']}"
 
 
+
 @sync_to_async
 def update_linkedin_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
     post.link_linkedin = post_url
-    post.post_on_linkedin = False
-    post.error_linkedin = None if err == "None" else err
+    if err != "None":
+        post.error_linkedin = err
+        post.scheduled_on += timedelta(days=1)
+        post.retries_linkedin += 1
+        post.post_on_linkedin = True
+    else:
+        post.post_on_linkedin = False
+        post.error_linkedin = None
     post.save(skip_validation=True)
+    return post.retries_linkedin
 
 
 async def post_on_linkedin(
@@ -146,8 +155,9 @@ async def post_on_linkedin(
             send_notification(
                 "ImPosting", f"AccountId: {integration.account_id} got error {err}"
             )
-            # await sync_to_async(integration.delete)()
     else:
         err = "(Re-)Authorize Linkedin on Integrations page"
 
-    await update_linkedin_link(post_id, post_url, str(err)[0:50])
+    retries_linkedin = await update_linkedin_link(post_id, post_url, str(err)[0:50])
+    if retries_linkedin >= 10:
+        await sync_to_async(integration.delete)()
