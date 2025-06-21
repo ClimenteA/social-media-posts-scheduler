@@ -75,8 +75,35 @@
                 If you don't see your posts published come on this page and click on Authorize button again (the token
                 expired and the app needs a new one).
             </p>
-            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-integrations.png' %}" alt="imposting integrations">
-            <img x-cloak x-show="theme === 'light'" src="{% static 'light-integrations.png' %}" alt="imposting integrations">
+
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+
+                <div x-show="!fullScreen">
+                    <img 
+                    x-cloak x-show="theme === 'dark'" src="{% static 'dark-integrations.png' %}" alt="imposting integrations"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+                    
+                    <img 
+                    x-cloak x-show="theme === 'light'" src="{% static 'light-integrations.png' %}" alt="imposting integrations"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+
+                    <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-integrations.png' %}" alt="imposting integrations"
+                        class="img-fullscreen">
+
+                    <img x-cloak x-show="theme === 'light'" src="{% static 'light-integrations.png' %}" alt="imposting integrations"
+                        class="img-fullscreen">
+                
+                </dialog>
+            </div>
+
+
+
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Calendar</strong>
@@ -84,16 +111,67 @@
                 A simple calendar where you can see the days you have posts or not. Select day or click Post Today
                 button.
             </p>
-            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-calendar.png' %}" alt="imposting calendar">
-            <img x-cloak x-show="theme === 'light'" src="{% static 'light-calendar.png' %}" alt="imposting calendar">
+            
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+
+                <div x-show="!fullScreen">
+                    <img 
+                    x-cloak x-show="theme === 'dark'" src="{% static 'dark-calendar.png' %}" alt="imposting calendar"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+                    
+                    <img 
+                    x-cloak x-show="theme === 'light'" src="{% static 'light-calendar.png' %}" alt="imposting calendar"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+
+                    <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-calendar.png' %}" alt="imposting calendar"
+                        class="img-fullscreen">
+
+                    <img x-cloak x-show="theme === 'light'" src="{% static 'light-calendar.png' %}" alt="imposting calendar"
+                        class="img-fullscreen">
+                
+                </dialog>
+            </div>
+
+
         </div>
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Schedule</strong>
             <p>
                 Just a simple form to write your post and add a image.
             </p>
-            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-schedule-post.png' %}" alt="imposting schedule post">
-            <img x-cloak x-show="theme === 'light'" src="{% static 'light-schedule-post.png' %}" alt="imposting schedule post">
+            
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+
+                <div x-show="!fullScreen">
+                    <img 
+                    x-cloak x-show="theme === 'dark'" src="{% static 'dark-schedule-post.png' %}" alt="imposting schedule post"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+                    
+                    <img 
+                    x-cloak x-show="theme === 'light'" src="{% static 'light-schedule-post.png' %}" alt="imposting schedule post"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+
+                    <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-schedule-post.png' %}" alt="imposting schedule post"
+                        class="img-fullscreen">
+
+                    <img x-cloak x-show="theme === 'light'" src="{% static 'light-schedule-post.png' %}" alt="imposting schedule post"
+                        class="img-fullscreen">
+                
+                </dialog>
+            </div>
+
         </div>
 
         <div style="display: flex; flex-direction: column; justify-content: center;">
@@ -101,8 +179,33 @@
             <p>
                 If you post on TikTok you'll need to complete another form.
             </p>
-            <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-tiktok-form.png' %}" alt="imposting tiktok form">
-            <img x-cloak x-show="theme === 'light'" src="{% static 'light-tiktok-form.png' %}" alt="imposting tiktok form">
+
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+
+                <div x-show="!fullScreen">
+                    <img 
+                    x-cloak x-show="theme === 'dark'" src="{% static 'dark-tiktok-form.png' %}" alt="imposting tiktok form"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+                    
+                    <img 
+                    x-cloak x-show="theme === 'light'" src="{% static 'light-tiktok-form.png' %}" alt="imposting tiktok form"
+                    @click="fullScreen = true"
+                    class="img-not-fullscreen">
+
+                </div>
+
+                <dialog :open="fullScreen" @click="fullScreen = false">
+
+                    <img x-cloak x-show="theme === 'dark'" src="{% static 'dark-tiktok-form.png' %}" alt="imposting tiktok form"
+                        class="img-fullscreen">
+
+                    <img x-cloak x-show="theme === 'light'" src="{% static 'light-tiktok-form.png' %}" alt="imposting tiktok form"
+                        class="img-fullscreen">
+                
+                </dialog>
+            </div>
+
         </div>
     </div>
 
@@ -248,7 +351,7 @@
 
             <p>
                 No. Turn on notifications - if you have many notifications you did good, if not, you need to improve.
-                imposting.com takes John's weather forecating stone approach. 
+                imposting.com takes John's weather forecasting stone approach. 
                 If you need data check in the social media apps you've been posting on. 
             </p>
             

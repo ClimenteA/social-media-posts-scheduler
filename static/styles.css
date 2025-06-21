@@ -173,3 +173,22 @@ ul.errorlist>li {
   font-weight: bold;
   font-family: monospace;
 }
+
+
+.img-not-fullscreen {
+  max-width: 100%;
+  height: 720px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  border-radius: 5px;
+}
+
+.img-fullscreen {
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  border-radius: 5px;
+}
