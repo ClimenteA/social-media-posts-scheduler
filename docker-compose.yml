@@ -18,6 +18,7 @@ services:
       - ./templates:/app/templates
       - ./manage.py:/app/manage.py
       - ./entrypoint.sh:/app/entrypoint.sh
+      - shared-tmp:/tmp
     ports:
       - "8000:8000"
     env_file:
@@ -43,6 +44,7 @@ services:
       - ./templates:/app/templates
       - ./manage.py:/app/manage.py
       - ./entrypoint.sh:/app/entrypoint.sh
+      - shared-tmp:/tmp
     env_file:
       - .env
     networks:
@@ -51,3 +53,6 @@ services:
 networks:
   web:
     external: true
+
+volumes:
+  shared-tmp:
