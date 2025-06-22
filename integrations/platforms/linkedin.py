@@ -118,22 +118,65 @@ class LinkedinPoster:
         return f"https://www.linkedin.com/feed/update/{response.json()['id']}"
 
 
-
 @sync_to_async
 def update_linkedin_link(post_id: int, post_url: str, err: str):
     post = PostModel.objects.get(id=post_id)
-    post.link_linkedin = post_url
+
     if err != "None":
+        # Update existing post with error
         post.error_linkedin = err
-        post.retries_linkedin += 1
-        delay_minutes = 5 * (2 ** (post.retries_linkedin - 1))
-        post.scheduled_on += timedelta(minutes=delay_minutes)
-        post.post_on_linkedin = True
+        post.post_on_linkedin = False
+        post.save(skip_validation=True)
+
+        # Clone post for retry
+        new_post = PostModel.objects.get(id=post_id)
+        new_post.pk = None
+
+        new_post.retries_linkedin += 1
+        delay_minutes = 5 * (2 ** (new_post.retries_linkedin - 1))
+        new_post.scheduled_on += timedelta(minutes=delay_minutes)
+        new_post.error_linkedin = err
+
+        # Only retry current platform
+        new_post.post_on_x = False
+        new_post.post_on_instagram = False
+        new_post.post_on_facebook = False
+        new_post.post_on_linkedin = True
+        new_post.post_on_tiktok = False
+
+        # Reset links
+        new_post.link_x = None
+        new_post.link_instagram = None
+        new_post.link_facebook = None
+        new_post.link_linkedin = None
+        new_post.link_tiktok = None
+
+        # Reset errors (keep only current one)
+        new_post.error_x = None
+        new_post.error_instagram = None
+        new_post.error_facebook = None
+        # new_post.error_linkedin = None
+        new_post.error_tiktok = None
+
+        # Reset retries for other platforms
+        new_post.retries_x = 0
+        new_post.retries_instagram = 0
+        new_post.retries_facebook = 0
+        # new_post.retries_linkedin = 0
+        new_post.retries_tiktok = 0
+
+        new_post.save(skip_validation=True)
+
+        return new_post.retries_linkedin
+
     else:
+        post.link_linkedin = post_url
         post.post_on_linkedin = False
         post.error_linkedin = None
-    post.save(skip_validation=True)
-    return post.retries_linkedin
+        post.save(skip_validation=True)
+
+        return post.retries_linkedin
+
 
 
 async def post_on_linkedin(
