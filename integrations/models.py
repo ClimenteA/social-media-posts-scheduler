@@ -1,7 +1,12 @@
-from django.db import models
+import os
+import requests
+import mimetypes
+from core.logger import log
 from core import settings
-from django.utils.translation import gettext_lazy as _
+from django.db import models
 from integrations.helpers.aes import AESCBC
+from django.core.files.base import ContentFile
+from django.utils.translation import gettext_lazy as _
 
 
 class Platform(models.TextChoices):
@@ -10,6 +15,13 @@ class Platform(models.TextChoices):
     FACEBOOK = "Facebook", _("Facebook")
     INSTAGRAM = "Instagram", _("Instagram")
     TIKTOK = "TikTok", _("TikTok")
+
+
+
+def get_filename(instance, filename):
+    ext = os.path.splitext(filename)[1].lower()
+    return f"{instance.account_id}/avatar/{instance.platform}{ext or '.jpg'}"
+
 
 
 class IntegrationsModel(models.Model):
@@ -22,6 +34,12 @@ class IntegrationsModel(models.Model):
     platform = models.CharField(max_length=1000, choices=Platform)
     username = models.CharField(max_length=1000, null=True, blank=True)
     avatar_url = models.CharField(max_length=100000, null=True, blank=True)
+    avatar = models.ImageField(
+        max_length=100_000,
+        upload_to=get_filename,
+        null=True,
+        blank=True,
+    )
 
     def save(self, *args, **kwargs):
         aes_cbc = AESCBC(settings.SECRET_KEY)
@@ -30,6 +48,20 @@ class IntegrationsModel(models.Model):
             self.access_token = aes_cbc.encrypt(self.access_token)
         if self.refresh_token:
             self.refresh_token = aes_cbc.encrypt(self.refresh_token)
+
+        if self.avatar_url:
+            try:
+                response = requests.get(self.avatar_url)
+                response.raise_for_status()
+
+                content_type = response.headers.get("Content-Type", "")
+                extension = mimetypes.guess_extension(content_type.split(";")[0].strip()) or ".jpg"
+                filename = f"avatar{extension}"
+
+                self.avatar.save(filename, ContentFile(response.content), save=False)
+            except Exception as err:
+                log.exception(err)
+                log.error(f"Failed to download avatar from {self.avatar_url}: {err}")
 
         super().save(*args, **kwargs)
 

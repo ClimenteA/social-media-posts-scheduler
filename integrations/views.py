@@ -70,7 +70,7 @@ def integrations_form(request):
         "integrations.html",
         context={
             "linkedin_avatar_url": (
-                image_url_to_base64(linkedin_integration.avatar_url)
+                image_url_to_base64(linkedin_integration.avatar.url)
                 if linkedin_integration
                 else None
             ),
@@ -78,11 +78,11 @@ def integrations_form(request):
                 linkedin_integration.username if linkedin_integration else None
             ),
             "x_avatar_url": (
-                image_url_to_base64(x_integration.avatar_url) if x_integration else None
+                image_url_to_base64(x_integration.avatar.url) if x_integration else None
             ),
             "x_username": x_integration.username if x_integration else None,
             "tiktok_avatar_url": (
-                image_url_to_base64(tiktok_integration.avatar_url)
+                image_url_to_base64(tiktok_integration.avatar.url)
                 if tiktok_integration
                 else None
             ),
@@ -90,7 +90,7 @@ def integrations_form(request):
                 tiktok_integration.username if tiktok_integration else None
             ),
             "facebook_avatar_url": (
-                image_url_to_base64(facebook_integration.avatar_url)
+                image_url_to_base64(facebook_integration.avatar.url)
                 if facebook_integration
                 else None
             ),
@@ -98,7 +98,7 @@ def integrations_form(request):
                 facebook_integration.username if facebook_integration else None
             ),
             "instagram_avatar_url": (
-                image_url_to_base64(instagram_integration.avatar_url)
+                image_url_to_base64(instagram_integration.avatar.url)
                 if instagram_integration
                 else None
             ),

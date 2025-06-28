@@ -8,8 +8,8 @@ from integrations.models import IntegrationsModel, Platform
 from integrations.platforms.tiktok import TikTokPoster
 
 
-# Brave browser thinks external profile url pics are an advert.
 def image_url_to_base64(url: str) -> str | None:
+    # Adblockers think images hosted on social media platforms are ads
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()

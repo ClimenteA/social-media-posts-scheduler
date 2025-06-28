@@ -48,7 +48,6 @@ class XPoster:
         response.raise_for_status()
         return response
 
-
     def get_post_url(self, id: int):
         return f"https://x.com/user/status/{id}"
 
@@ -70,20 +69,20 @@ class XPoster:
 
         with open(image_path, "rb") as f:
             file_content = f.read()
-            base64_encoded = base64.b64encode(file_content).decode('utf-8')
+            base64_encoded = base64.b64encode(file_content).decode("utf-8")
 
             upload_response = self._make_authenticated_request(
                 "post",
                 self.upload_url,
                 headers={
                     "Content-Type": "application/json",
-                    "Content-Transfer-Encoding": "base64"
+                    "Content-Transfer-Encoding": "base64",
                 },
                 json={
                     "media_category": "tweet_image",
                     "media_type": media_type,
                     "shared": True,
-                    "media": base64_encoded
+                    "media": base64_encoded,
                 },
             )
             log.debug(upload_response.content)
