@@ -1,7 +1,9 @@
 import re
 import uuid
 import random
+import shutil
 import requests
+from pathlib import Path
 from collections import Counter
 from core import settings
 from core.logger import log, send_notification
@@ -45,6 +47,7 @@ def get_relevant_image_for_text(text: str):
         photo_url = best_photo["src"]["large"]  # Or "original", "large", etc.
 
         img_response = requests.get(photo_url)
+        log.debug(img_response.content)
         img_response.raise_for_status()
 
         image_path = f"/tmp/{uuid.uuid4().hex}.png"
@@ -56,4 +59,9 @@ def get_relevant_image_for_text(text: str):
     except Exception as err:
         log.exception(err)
         send_notification("ImPosting", f"Error on pexels: {err}")
-        return None
+        
+        src = Path(__file__).parent / "bg.jpg"
+        dst = f"/tmp/{uuid.uuid4().hex}.jpg"
+        shutil.copyfile(src, dst)
+        
+        return dst
