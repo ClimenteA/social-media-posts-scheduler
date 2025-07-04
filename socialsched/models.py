@@ -7,6 +7,7 @@ from django.utils.timezone import is_aware
 from enum import IntEnum
 from integrations.models import IntegrationsModel, Platform
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 
 
 class PrivacyLevelOptions(models.TextChoices):
@@ -105,6 +106,38 @@ class PostModel(models.Model):
     @property
     def has_image(self):
         return self.media_file_type == MediaFileTypes.IMAGE.value
+        
+
+    def raise_error_if_2_posts_limit_reached(self):
+
+        platform_fields = {
+            "instagram": ("post_on_instagram", "link_instagram"),
+            "facebook": ("post_on_facebook", "link_facebook"),
+            "linkedin": ("post_on_linkedin", "link_linkedin"),
+            "tiktok": ("post_on_tiktok", "link_tiktok"),
+            "x": ("post_on_x", "link_x"),
+        }
+
+        scheduled_date = self.scheduled_on.date()
+
+        for platform, (post_flag, link_field) in platform_fields.items():
+            if getattr(self, post_flag):  # only check selected platforms
+                q_filter = Q(**{
+                    post_flag: True,
+                    f"{link_field}__isnull": True,
+                })
+
+                qs = PostModel.objects.filter(
+                    account_id=self.account_id,
+                    scheduled_on__date=scheduled_date,
+                ).filter(q_filter)
+
+                if self.pk:
+                    qs = qs.exclude(pk=self.pk)
+
+                if qs.count() >= 2:
+                    raise Exception(f"Limit of 2 posts per day reached on {platform.capitalize()}!")
+                
 
     def save(self, *args, **kwargs):
 
@@ -132,6 +165,8 @@ class PostModel(models.Model):
             ZoneInfo(self.post_timezone)
         except ZoneInfoNotFoundError:
             raise ValueError(f"Invalid timezone: {self.post_timezone}")
+                
+        self.raise_error_if_2_posts_limit_reached()
 
         if self.media_file:
             ext = os.path.splitext(self.media_file.name)[1].lower()
