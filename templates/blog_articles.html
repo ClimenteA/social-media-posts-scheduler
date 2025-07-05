@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page-title %} Blog {% endblock %}
+
+
+{% block body %}
+
+<h1 style="text-align: center; margin-top: 2rem;">📋 Huge lists of inspiration on what to post!</h1>
+
+
+<div class="container mt-2" style="max-width: 900px;">
+
+    {% for item in items %}
+
+    <article style="display: flex; justify-content: center;">
+        <a href="{% url "blog_article" blog_slug=item.blog_slug %}">
+            {{ item.blog_title }}
+        </a>
+    </article>
+
+    {% endfor %}
+
+</div>
+
+
+<div style="display: flex; flex-direction: column; justify-content: center; margin-top: 18rem;">
+    <h1 style="text-align: center;">Start posting today!</h1>
+
+    <a style="margin-top: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+        <i class="bi bi-google"></i>
+        Join with Google
+    </a>
+
+    <small style="margin-top: 2rem; text-align: center;" class="pico-color-yellow-200">
+        You'll get 7 days trial to test it!
+    </small>
+
+</div>
+
+{% endblock %}

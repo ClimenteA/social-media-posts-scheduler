@@ -1,18 +1,5 @@
 from django.urls import path
-from django.urls import reverse
-from django.contrib.sitemaps import Sitemap
 from . import views
-
-
-class LoginSitemap(Sitemap):
-    changefreq = "monthly"
-    priority = 1
-
-    def items(self):
-        return ["login"]
-
-    def location(self, item):
-        return reverse(item)
 
 
 urlpatterns = [
@@ -27,4 +14,6 @@ urlpatterns = [
     path("login/", views.login_user, name="login"),
     path("logout/", views.logout_user, name="logout"),
     path("legal/", views.legal, name="legal"),
+    path("blog/", views.blog_articles, name="blog_articles"),
+    path("blog/<slug:blog_slug>/", views.blog_article, name="blog_article"),
 ]

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page-title %} {{ title }} {% endblock %}
+
+
+{% block body %}
+
+<script>
+    const STORAGE_KEY = '{{ title }}';
+
+    function getStoredChecks() {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    }
+
+    function saveStoredChecks(state) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function todoCheck(id) {
+        return {
+            id,
+            checked: false,
+            init() {
+                const state = getStoredChecks();
+                this.checked = !!state[this.id];
+            },
+            toggle() {
+                const state = getStoredChecks();
+                state[this.id] = this.checked;
+                saveStoredChecks(state);
+            }
+        }
+    }
+</script>
+
+
+
+<h1 style="text-align: center; margin-top: 2rem;">{{ title }}</h1>
+
+
+<div class="container">
+
+    <p style="text-align: center;">{{ description }}</p>
+
+        
+    <ol class="mt-4">
+        {% for idea in ideas %}
+        <li>
+            <article x-data="todoCheck('{{ idea.id }}')" x-init="init()">
+                <label>
+                    <input type="checkbox" x-model="checked" @change="toggle()" id="{{ idea.id }}" />
+                    
+                    <template x-if="checked">
+                        <s>{{ idea.text }}</s>
+                    </template>
+
+                    <template x-if="!checked">
+                        <span>{{ idea.text }}</span>
+                    </template>
+                </label>
+            </article>
+        </li>
+        {% endfor %}
+    </ol>
+
+
+</div>
+
+
+<div style="display: flex; flex-direction: column; justify-content: center; margin-top: 4rem;">
+    <h1 style="text-align: center;">Start posting today!</h1>
+
+    <a style="margin-top: 2rem;" role="button" href="{% url "social:begin" "google-oauth2" %}?next=/">
+        <i class="bi bi-google"></i>
+        Join with Google
+    </a>
+
+    <small style="margin-top: 2rem; text-align: center;" class="pico-color-yellow-200">
+        You'll get 7 days trial to test it!
+    </small>
+
+</div>
+
+
+
+{% endblock %}
