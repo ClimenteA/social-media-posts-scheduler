@@ -493,7 +493,7 @@ def tiktok_login(request):
     params = {
         "client_key": settings.TIKTOK_CLIENT_ID,
         "response_type": "code",
-        "scope": "user.info.basic,video.publish,video.list",
+        "scope": "user.info.basic,video.publish,video.upload",
         "redirect_uri": settings.TIKTOK_REDIRECT_URI,
         "state": uuid.uuid4().hex,
     }
