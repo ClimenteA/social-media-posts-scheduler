@@ -33,6 +33,9 @@ class TikTokPostModel(models.Model):
     branded_content = models.BooleanField()
     ai_generated = models.BooleanField()
 
+    def __str__(self):
+        return f"AccountId:{self.account_id} PostId: {self.post_id}"
+
 
 class TextMaxLength(IntEnum):
     X_FREE = 280
@@ -98,7 +101,6 @@ class PostModel(models.Model):
     retries_linkedin = models.IntegerField(blank=True, null=True, default=0)
     retries_tiktok = models.IntegerField(blank=True, null=True, default=0)
 
-
     @property
     def has_video(self):
         return self.media_file_type == MediaFileTypes.VIDEO.value
@@ -106,7 +108,6 @@ class PostModel(models.Model):
     @property
     def has_image(self):
         return self.media_file_type == MediaFileTypes.IMAGE.value
-        
 
     def raise_error_if_2_posts_limit_reached(self):
 
@@ -122,10 +123,12 @@ class PostModel(models.Model):
 
         for platform, (post_flag, link_field) in platform_fields.items():
             if getattr(self, post_flag):  # only check selected platforms
-                q_filter = Q(**{
-                    post_flag: True,
-                    f"{link_field}__isnull": True,
-                })
+                q_filter = Q(
+                    **{
+                        post_flag: True,
+                        f"{link_field}__isnull": True,
+                    }
+                )
 
                 qs = PostModel.objects.filter(
                     account_id=self.account_id,
@@ -136,8 +139,9 @@ class PostModel(models.Model):
                     qs = qs.exclude(pk=self.pk)
 
                 if qs.count() >= 2:
-                    raise Exception(f"Limit of 2 posts per day reached on {platform.capitalize()}!")
-                
+                    raise Exception(
+                        f"Limit of 2 posts per day reached on {platform.capitalize()}!"
+                    )
 
     def save(self, *args, **kwargs):
 
@@ -165,7 +169,7 @@ class PostModel(models.Model):
             ZoneInfo(self.post_timezone)
         except ZoneInfoNotFoundError:
             raise ValueError(f"Invalid timezone: {self.post_timezone}")
-                
+
         self.raise_error_if_2_posts_limit_reached()
 
         if self.media_file:

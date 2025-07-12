@@ -309,6 +309,10 @@ def update_tiktok_link(post_id: int, post_url: str, err: str):
 
         new_post.save(skip_validation=True)
 
+        TikTokPostModel.objects.filter(
+            post_id=post_id, account_id=post.account_id
+        ).update(post_id=new_post.pk)
+
         return new_post.retries_tiktok
 
     else:
