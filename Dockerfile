@@ -3,6 +3,8 @@ FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 COPY . /app
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y ffmpeg
+
 ENV UV_LINK_MODE=copy
 RUN uv sync
 
