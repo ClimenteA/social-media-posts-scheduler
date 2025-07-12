@@ -38,7 +38,7 @@
                 </div>
 
                 <dialog :open="fullScreen" @click="fullScreen = false">
-                    <video controls autoplay
+                    <video controls
                         style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
                         <source src="{{ post.media_file.url }}" type="video/mp4">
                         Your browser does not support the video tag.
