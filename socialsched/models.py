@@ -274,4 +274,4 @@ class PostModel(models.Model):
         verbose_name_plural = "scheduled"
 
     def __str__(self):
-        return f"AccountId:{self.account_id} PostScheduledOn: {self.scheduled_on}"
+        return f"AccountId:{self.account_id} PostId: {self.pk} PostScheduledOn: {self.scheduled_on}"
