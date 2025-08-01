@@ -44,7 +44,7 @@ class XPoster:
         self, method: Literal["post", "get"], url: str, **kwargs
     ):
         response = getattr(self.client, method)(url, **kwargs)
-        log.debug(response.content)
+        log.debug("X Athenticated Response: ", response.content)
         response.raise_for_status()
         return response
 
