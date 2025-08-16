@@ -399,7 +399,7 @@
 
                     <label for="{{ post_form.tiktok_privacy_level_options.id_for_label }}">
                         Who can view this video?
-                        <select name="privacy_level_options" required="" id="id_privacy_level_options">
+                        <select name="{{ post_form.tiktok_privacy_level_options.name }}" required="" id="{{ post_form.tiktok_privacy_level_options.auto_id }}">
                             <option value="" selected>---------</option>
                             <option value="FOLLOWER_OF_CREATOR">Followers of Creator</option>
                             <option value="PUBLIC_TO_EVERYONE" :selected="brandedContent">Public to Everyone</option>

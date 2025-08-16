@@ -161,14 +161,18 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
 
     show_form = today.date() <= scheduled_on
 
-    if form is None:
-        form = PostForm(initial={"scheduled_on": scheduled_on})
-
     integrations_info = get_integrations_context(social_uid)
 
-    tiktok_info = None
+    initial_form_data = {"scheduled_on": scheduled_on}
+
+    tiktok_info = {}
     if integrations_info["tiktok_ok"]:
         tiktok_info = get_tiktok_creator_info(social_uid)
+        initial_form_data["tiktok_nickname"] = tiktok_info["creator_nickname"]
+        initial_form_data["tiktok_max_video_post_duration_sec"] = tiktok_info["max_video_post_duration_sec"]
+
+    if form is None:
+        form = PostForm(initial=initial_form_data)
 
     return {
         "show_form": show_form,
@@ -214,6 +218,13 @@ def schedule_save(request, isodate):
     form = PostForm(request.POST, request.FILES)
 
     if not form.is_valid():
+        log.error(form.errors.as_json())
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "Form has some errors",
+            extra_tags="🟥 Error!",
+        )
         return render(
             request,
             "schedule.html",
@@ -226,11 +237,7 @@ def schedule_save(request, isodate):
 
         # Delay schedule_on with time it took for uploading the file
         if post.scheduled_on:
-            # Just to make sure user completed the second form
-            if post.post_on_tiktok:
-                post.scheduled_on = post.scheduled_on + timedelta(minutes=30)
-            else:
-                post.scheduled_on = post.scheduled_on + timedelta(minutes=5)
+            post.scheduled_on = post.scheduled_on + timedelta(minutes=5)
 
             target_tz = ZoneInfo(post.post_timezone)
             scheduled_aware = post.scheduled_on.replace(tzinfo=target_tz)
@@ -241,6 +248,15 @@ def schedule_save(request, isodate):
                 post.scheduled_on = post.scheduled_on + delay
 
         post.save()
+
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "Post saved!",
+            extra_tags="✅ Success!",
+        )
+
+        return redirect(f"/schedule/{isodate}/")
 
     except Exception as err:
         log.exception(err)

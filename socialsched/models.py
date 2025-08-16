@@ -82,18 +82,18 @@ class PostModel(models.Model):
     retries_tiktok = models.IntegerField(blank=True, null=True, default=0)
 
     # TIKTOK
-    tiktok_nickname = models.CharField(max_length=1000, blank=True, default=None)
-    tiktok_max_video_post_duration_sec = models.IntegerField(blank=True, default=None)
+    tiktok_nickname = models.CharField(max_length=1000, blank=True, null=True, default=None)
+    tiktok_max_video_post_duration_sec = models.IntegerField(blank=True, null=True, default=None)
     tiktok_privacy_level_options = models.CharField(
-        max_length=1000, choices=PrivacyLevelOptions, blank=True, default=None
+        max_length=1000, choices=PrivacyLevelOptions, blank=True, null=True, default=None
     )
-    tiktok_allow_comment = models.BooleanField(blank=True, default=None)
-    tiktok_allow_duet = models.BooleanField(blank=True, default=None)
-    tiktok_allow_stitch = models.BooleanField(blank=True, default=None)
-    tiktok_disclose_video_content = models.BooleanField(blank=True, default=None)
-    tiktok_your_brand = models.BooleanField(blank=True, default=None)
-    tiktok_branded_content = models.BooleanField(blank=True, default=None)
-    tiktok_ai_generated = models.BooleanField(blank=True, default=None)
+    tiktok_allow_comment = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_allow_duet = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_allow_stitch = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_disclose_video_content = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_your_brand = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_branded_content = models.BooleanField(blank=True, null=True, default=None)
+    tiktok_ai_generated = models.BooleanField(blank=True, null=True, default=None)
 
     @property
     def has_video(self):
