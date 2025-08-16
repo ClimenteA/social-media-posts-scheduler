@@ -39,14 +39,183 @@
 
 {% if show_form %}
 
-<div x-data="showPreview">
+<style>
+    .two-panel {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+    }
 
-    <article class="article-form mt-2 container">
+    @media (max-width: 768px) {
+        .two-panel {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .social-checkbox-label {
+        display: flex; flex-direction: column; gap: 10px;
+    } 
+    .social-checkbox-figure {
+        display: flex; gap: 10px; align-items: center;
+    }
+
+    .avatar {
+        display: inline-block;
+        object-fit: cover; 
+        width: 35px; 
+        height: 35px;
+        border-radius: 5px; 
+    }
+
+    article {
+        padding: 1.5rem;
+    }
+
+    pre {
+        text-align: center;
+    }
+
+    .whitespace-pre-line {
+        white-space: pre-line;
+    }
+    
+</style>
+
+<div x-data="showPreview" class="container-fluid grid mt-2 two-panel">
+
+    <article>
+
+        <pre>POST</pre>
 
         <form x-data="formData" x-on:submit="loading = true" action="{% url 'schedule_save' isodate=isodate %}"
             method="POST" enctype="multipart/form-data">
 
             {% csrf_token %}
+
+            <div style="margin-bottom: 2rem; display: flex;">
+
+                {% if integrations_info.facebook_ok %}
+                    <label for="{{ post_form.post_on_facebook.id_for_label }}" class="social-checkbox-label">
+
+                        <div style="font-size: 12px;">
+                            <i class="bi bi-facebook"></i>
+                            <strong>Facebook</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <img src="{{ integrations_info.facebook_avatar_url }}"
+                                    alt="{{ integrations_info.facebook_username }}"
+                                    class="avatar">
+                            </figure>
+                            <strong style="font-size: 16px;">{{ integrations_info.facebook_username }}</strong>
+                            <input type="checkbox" name="{{ post_form.post_on_facebook.name }}" id="{{ post_form.post_on_facebook.auto_id }}">
+                        </div>
+
+                        {{ post_form.post_on_facebook.errors }}
+
+                    </label>
+                {% endif %}
+
+
+                {% if integrations_info.instagram_ok %}
+                    <label for="{{ post_form.post_on_instagram.id_for_label }}">
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+
+                            <div style="font-size: 12px;">
+                                <i class="bi bi-instagram"></i>
+                                <strong>Instagram</strong>
+                            </div>
+
+                            <div class="social-checkbox-figure">
+                                <figure style="position: relative;">
+                                    <img src="{{ integrations_info.instagram_avatar_url }}"
+                                        alt="{{ integrations_info.instagram_username }}" 
+                                        class="avatar">
+                                </figure>
+                                <strong style="font-size: 16px;">{{ integrations_info.instagram_username }}</strong>
+                                <input type="checkbox" name="{{ post_form.post_on_instagram.name }}" id="{{ post_form.post_on_instagram.auto_id }}">
+                            </div>
+                        </div>
+
+                        {{ post_form.post_on_instagram.errors }}
+
+                    </label>
+                {% endif %}
+
+
+                {% if integrations_info.tiktok_ok %}
+                    <label for="{{ post_form.post_on_tiktok.id_for_label }}" class="social-checkbox-label">
+
+                        <div style="font-size: 12px;">
+                            <i class="bi bi-tiktok"></i>
+                            <strong>TikTok</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <img src="{{ integrations_info.tiktok_avatar_url }}"
+                                    alt="{{ integrations_info.tiktok_username }}"
+                                    class="avatar">
+                            </figure>
+                            <strong style="font-size: 16px;">{{ integrations_info.tiktok_username }}</strong>
+                            <input type="checkbox" name="{{ post_form.post_on_tiktok.name }}" id="{{ post_form.post_on_tiktok.auto_id }}">
+                        </div>
+
+                        {{ post_form.post_on_tiktok.errors }}
+
+                    </label>
+                {% endif %}
+
+
+                {% if integrations_info.x_ok %}
+                    <label for="{{ post_form.post_on_x.id_for_label }}" class="social-checkbox-label">
+
+                        <div style="font-size: 12px;">
+                            <i class="bi bi-twitter-x"></i>
+                            <strong>X</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <img src="{{ integrations_info.x_avatar_url }}"
+                                    alt="{{ integrations_info.x_username }}"
+                                    class="avatar">
+                            </figure>
+                            <strong style="font-size: 16px;">{{ integrations_info.x_username }}</strong>
+                            <input type="checkbox" name="{{ post_form.post_on_x.name }}" id="{{ post_form.post_on_x.auto_id }}">
+                        </div>
+
+                        {{ post_form.post_on_x.errors }}
+
+                    </label>
+                {% endif %}
+
+
+                 {% if integrations_info.linkedin_ok %}
+                    <label for="{{ post_form.post_on_linkedin.id_for_label }}" class="social-checkbox-label">
+
+                        <div style="font-size: 12px;">
+                            <i class="bi bi-linkedin"></i>
+                            <strong>LinkedIn</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <img src="{{ integrations_info.linkedin_avatar_url }}"
+                                    alt="{{ integrations_info.linkedin_username }}"
+                                    class="avatar">
+                            </figure>
+                            <strong style="font-size: 16px;">{{ integrations_info.linkedin_username }}</strong>
+                            <input type="checkbox" name="{{ post_form.post_on_linkedin.name }}" id="{{ post_form.post_on_linkedin.auto_id }}">
+                        </div>
+
+                        {{ post_form.post_on_linkedin.errors }}
+
+                    </label>
+                {% endif %}
+
+            </div>
 
             <div style="display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 2rem;">
 
@@ -71,39 +240,7 @@
                     {{ post_form.post_timezone.errors }}
                 </label>
 
-                <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
-
-                    <label for="{{ post_form.post_on_facebook.id_for_label }}">
-                        <i class="bi bi-facebook"></i>
-                        {{ post_form.post_on_facebook }}
-                        {{ post_form.post_on_facebook.errors }}
-                    </label>
-
-                    <label for="{{ post_form.post_on_instagram.id_for_label }}">
-                        <i class="bi bi-instagram"></i>
-                        {{ post_form.post_on_instagram }}
-                        {{ post_form.post_on_instagram.errors }}
-                    </label>
-
-                    <label for="{{ post_form.post_on_tiktok.id_for_label }}">
-                        <i class="bi bi-tiktok"></i>
-                        {{ post_form.post_on_tiktok }}
-                        {{ post_form.post_on_tiktok.errors }}
-                    </label>
-
-                    <label for="{{ post_form.post_on_x.id_for_label }}">
-                        <i class="bi bi-twitter-x"></i>
-                        {{ post_form.post_on_x }}
-                        {{ post_form.post_on_x.errors }}
-                    </label>
-
-                    <label for="{{ post_form.post_on_linkedin.id_for_label }}">
-                        <i class="bi bi-linkedin"></i>
-                        {{ post_form.post_on_linkedin }}
-                        {{ post_form.post_on_linkedin.errors }}
-                    </label>
-
-                    <span>|</span>
+                <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap; align-items: center;">
 
                     <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Process image">
                         <i class="bi bi-camera-fill"></i>
@@ -119,7 +256,6 @@
 
                 </div>
 
-
                 <div style="display: flex; flex-direction: column; font-size: 12px;">
                     <small class="pico-color-slate-450">
                         <i class="bi bi-camera-fill"></i>
@@ -134,7 +270,6 @@
                         1080x1920px and 90 seconds length).
                     </small>
                 </div>
-
 
             </div>
 
@@ -166,7 +301,8 @@
                                 x-show="showEmojiPicker" @click.away="showEmojiPicker = false">
                             </div>
 
-                            <button class="outline" type="button" @click="togglePicker">
+                            <button style="all: unset; padding: 10px; color: rgb(179, 178, 178); cursor: pointer;"
+                                class="outline" type="button" @click="togglePicker">
                                 <i class="bi bi-emoji-smile"></i>
                             </button>
                         </div>
@@ -175,10 +311,14 @@
 
             </div>
 
-            <label for="{{ post_form.media_file.id_for_label }}">
-                <input type="file" name="media_file" id="{{ post_form.media_file.auto_id }}" @change="handleFileChange">
-                {{ post_form.media_file.errors }}
-            </label>
+
+            <div>
+                <label for="{{ post_form.media_file.id_for_label }}">
+                    <input type="file" name="media_file" id="{{ post_form.media_file.auto_id }}"
+                        @change="handleFileChange">
+                    {{ post_form.media_file.errors }}
+                </label>
+            </div>
 
             <button type="submit" x-bind:disabled="loading">
                 <i class="bi bi-save"></i>
@@ -191,67 +331,49 @@
 
     </article>
 
+    <article style="max-height: fit-content;">
 
-    <div id="preview-post" x-show="mediaUrl || postText">
+        <pre>PREVIEW</pre>
 
-        <div class="mt-4"></div>
-        <div style="max-width: 900px; margin: 0 auto;">
+        <p x-text="postText" class="whitespace-pre-line"></p>
 
-            <article>
-
-                <pre>PREVIEW</pre>
-
-                <div style="display: flex; justify-content: end;">
-                    <small class="pico-color-slate-450">{{ post.scheduled_on }}</small>
+        <template x-if="mediaType === 'image'">
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                <div x-show="!fullScreen">
+                    <img @click="fullScreen = true" :src="mediaUrl" alt="Media file"
+                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
                 </div>
 
-                <p x-text="postText"></p>
+                <dialog :open="fullScreen" @click="fullScreen = false">
+                    <img :src="mediaUrl" alt="Media file"
+                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                </dialog>
+            </div>
+        </template>
 
-                <!-- IMAGE -->
-                <template x-if="mediaType === 'image'">
-                    <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
-                        <div x-show="!fullScreen">
-                            <img @click="fullScreen = true" :src="mediaUrl" alt="Media file"
-                                style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                        </div>
+        <template x-if="mediaType === 'video'">
+            <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                <div x-show="!fullScreen">
+                    <video @click="fullScreen = true" controls
+                        style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        <source :src="mediaUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
 
-                        <dialog :open="fullScreen" @click="fullScreen = false">
-                            <img :src="mediaUrl" alt="Media file"
-                                style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                        </dialog>
-                    </div>
-                </template>
+                <dialog :open="fullScreen" @click="fullScreen = false">
+                    <video controls
+                        style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        <source :src="mediaUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </dialog>
+            </div>
+        </template>
 
-                <!-- VIDEO -->
-                <template x-if="mediaType === 'video'">
-                    <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
-                        <div x-show="!fullScreen">
-                            <video @click="fullScreen = true" controls
-                                style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                                <source :src="mediaUrl" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-
-                        <dialog :open="fullScreen" @click="fullScreen = false">
-                            <video controls
-                                style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
-                                <source :src="mediaUrl" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        </dialog>
-                    </div>
-                </template>
-
-            </article>
-
-        </div>
-
-    </div>
-
+    </article>
 
 </div>
-
 
 {% else %}
 

@@ -10,7 +10,7 @@ from django.db.models import Min, Max
 from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
-from integrations.helpers.utils import get_tiktok_creator_info
+from integrations.helpers.utils import get_tiktok_creator_info, get_integrations_context
 from .models import PostModel, TikTokPostModel
 from .forms import PostForm, TikTokForm
 from .schedule_utils import (
@@ -154,10 +154,7 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
     scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
     prev_date = scheduled_on - timedelta(days=1)
     next_date = scheduled_on + timedelta(days=1)
-    posts = PostModel.objects.filter(
-        account_id=social_uid, scheduled_on__date=scheduled_on
-    )
-
+    
     posts = PostModel.objects.filter(
         account_id=social_uid, scheduled_on__date=scheduled_on
     )
@@ -166,6 +163,8 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
 
     if form is None:
         form = PostForm(initial={"scheduled_on": scheduled_on})
+
+    integrations_info = get_integrations_context(social_uid)
 
     return {
         "show_form": show_form,
@@ -177,6 +176,7 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
         "prev_date": prev_date,
         "today": today.date().isoformat(),
         "next_date": next_date,
+        "integrations_info": integrations_info
     }
 
 
@@ -312,9 +312,9 @@ def tiktok_settings(request, isodate: str, post_id: int):
             "nickname": tiktok_data["creator_nickname"],
             "max_video_post_duration_sec": tiktok_data["max_video_post_duration_sec"],
             "privacy_level_options": tiktok_data["privacy_level_options"],
-            "allow_comment": not tiktok_data["comment_disabled"],
-            "allow_duet": not tiktok_data["duet_disabled"],
-            "allow_stitch": not tiktok_data["stitch_disabled"],
+            "allow_comment": False,
+            "allow_duet": False,
+            "allow_stitch": False,
         }
     )
 
