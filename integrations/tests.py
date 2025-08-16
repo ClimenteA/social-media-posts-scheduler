@@ -3,7 +3,6 @@ import webbrowser
 from core import settings
 from django.test import TestCase
 from integrations.models import IntegrationsModel, Platform
-from socialsched.models import TikTokPostModel, PrivacyLevelOptions
 from integrations.platforms.xtwitter import XPoster
 from integrations.platforms.facebook import FacebookPoster
 from integrations.platforms.instagram import InstagramPoster
@@ -173,22 +172,7 @@ class TestPostingOnSocials(TestCase):
     def test_post_text_with_reel_on_tiktok(self):
         # uv run python manage.py test integrations.tests.TestPostingOnSocials.test_post_text_with_reel_on_tiktok
         
-        tiktok_settings = TikTokPostModel(
-            post_id = 1,
-            account_id = 1,
-            nickname = "developeralin",
-            max_video_post_duration_sec = 900,
-            privacy_level_options = PrivacyLevelOptions.SELF_ONLY.value,
-            allow_comment = True,
-            allow_duet = True,
-            allow_stitch = True,
-            disclose_video_content = False,
-            your_brand = False,
-            branded_content = False,
-            ai_generated = False
-        )
-
-        tiktok_settings.save()
+        tiktok_settings = None
 
         integration = IntegrationsModel(
             account_id=tiktok_settings.account_id,

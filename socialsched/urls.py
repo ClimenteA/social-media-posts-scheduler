@@ -6,8 +6,6 @@ urlpatterns = [
     path("", views.calendar, name="calendar"),
     path("schedule/<str:isodate>/", views.schedule_form, name="schedule_form"),
     path("schedule-save/<str:isodate>/", views.schedule_save, name="schedule_save"),
-    path("tiktok-settings/<str:isodate>/<int:post_id>/", views.tiktok_settings, name="tiktok_settings"),
-    path("tiktok-settings-save/<str:isodate>/<int:post_id>/", views.tiktok_settings_save, name="tiktok_settings_save"),
     path(
         "schedule-delete/<int:post_id>/", views.schedule_delete, name="schedule_delete"
     ),

@@ -17,26 +17,6 @@ class PrivacyLevelOptions(models.TextChoices):
     SELF_ONLY = "SELF_ONLY", _("Self Only")
 
 
-class TikTokPostModel(models.Model):
-    post_id = models.IntegerField()
-    account_id = models.IntegerField()
-    nickname = models.CharField(max_length=1000)
-    max_video_post_duration_sec = models.IntegerField()
-    privacy_level_options = models.CharField(
-        max_length=1000, choices=PrivacyLevelOptions
-    )
-    allow_comment = models.BooleanField(blank=True, default=None)
-    allow_duet = models.BooleanField(blank=True, default=None)
-    allow_stitch = models.BooleanField(blank=True, default=None)
-    disclose_video_content = models.BooleanField()
-    your_brand = models.BooleanField()
-    branded_content = models.BooleanField()
-    ai_generated = models.BooleanField()
-
-    def __str__(self):
-        return f"AccountId:{self.account_id} PostId: {self.post_id}"
-
-
 class TextMaxLength(IntEnum):
     X_FREE = 280
     X_BLUE = 4000
@@ -100,6 +80,20 @@ class PostModel(models.Model):
     retries_facebook = models.IntegerField(blank=True, null=True, default=0)
     retries_linkedin = models.IntegerField(blank=True, null=True, default=0)
     retries_tiktok = models.IntegerField(blank=True, null=True, default=0)
+
+    # TIKTOK
+    tiktok_nickname = models.CharField(max_length=1000, blank=True, default=None)
+    tiktok_max_video_post_duration_sec = models.IntegerField(blank=True, default=None)
+    tiktok_privacy_level_options = models.CharField(
+        max_length=1000, choices=PrivacyLevelOptions, blank=True, default=None
+    )
+    tiktok_allow_comment = models.BooleanField(blank=True, default=None)
+    tiktok_allow_duet = models.BooleanField(blank=True, default=None)
+    tiktok_allow_stitch = models.BooleanField(blank=True, default=None)
+    tiktok_disclose_video_content = models.BooleanField(blank=True, default=None)
+    tiktok_your_brand = models.BooleanField(blank=True, default=None)
+    tiktok_branded_content = models.BooleanField(blank=True, default=None)
+    tiktok_ai_generated = models.BooleanField(blank=True, default=None)
 
     @property
     def has_video(self):

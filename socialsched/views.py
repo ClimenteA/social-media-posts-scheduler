@@ -11,8 +11,8 @@ from core.logger import log
 from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
 from integrations.helpers.utils import get_tiktok_creator_info, get_integrations_context
-from .models import PostModel, TikTokPostModel
-from .forms import PostForm, TikTokForm
+from .models import PostModel
+from .forms import PostForm
 from .schedule_utils import (
     get_day_data,
     get_initial_month_placeholder,
@@ -166,6 +166,10 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
 
     integrations_info = get_integrations_context(social_uid)
 
+    tiktok_info = None
+    if integrations_info["tiktok_ok"]:
+        tiktok_info = get_tiktok_creator_info(social_uid)
+
     return {
         "show_form": show_form,
         "posts": posts,
@@ -176,7 +180,8 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
         "prev_date": prev_date,
         "today": today.date().isoformat(),
         "next_date": next_date,
-        "integrations_info": integrations_info
+        "integrations_info": integrations_info,
+        "tiktok_info": tiktok_info
     }
 
 
@@ -284,9 +289,6 @@ def schedule_delete(request, post_id):
 
     post.delete()
 
-    # Deleting weak tiktok reference as well
-    TikTokPostModel.objects.filter(post_id=post_id, account_id=social_uid).delete()
-
     messages.add_message(
         request,
         messages.SUCCESS,
@@ -294,102 +296,6 @@ def schedule_delete(request, post_id):
         extra_tags="✅ Succes!",
     )
     return redirect(f"/schedule/{isodate}/")
-
-
-@login_required
-def tiktok_settings(request, isodate: str, post_id: int):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
-
-    post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
-
-    tiktok_data = get_tiktok_creator_info(social_uid)
-
-    form = TikTokForm(
-        initial={
-            "post_id": post_id,
-            "account_id": social_uid,
-            "nickname": tiktok_data["creator_nickname"],
-            "max_video_post_duration_sec": tiktok_data["max_video_post_duration_sec"],
-            "privacy_level_options": tiktok_data["privacy_level_options"],
-            "allow_comment": False,
-            "allow_duet": False,
-            "allow_stitch": False,
-        }
-    )
-
-    return render(
-        request,
-        "tiktok_settings.html",
-        context={
-            "post_id": post_id,
-            "isodate": isodate,
-            "tiktok_form": form,
-            "posts": [post],
-        },
-    )
-
-
-@login_required
-def tiktok_settings_save(request, isodate: str, post_id: int):
-    now_utc = timezone.now()
-
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
-
-    post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
-
-    form = TikTokForm(request.POST)
-
-    if not form.is_valid():
-
-        log.error(form.errors.as_json())
-
-        messages.add_message(
-            request,
-            messages.ERROR,
-            "Form had errors",
-            extra_tags="🟥 Error!",
-        )
-        return render(
-            request,
-            "tiktok_settings.html",
-            context={
-                "post_id": post_id,
-                "isodate": isodate,
-                "tiktok_form": form,
-            },
-        )
-
-    try:
-        form.save()
-
-        # Delay schedule_on with time it took for completing the tiktok form
-        if post.scheduled_on:
-            target_tz = ZoneInfo(post.post_timezone)
-            scheduled_aware = post.scheduled_on.replace(tzinfo=target_tz)
-            now_in_target_tz = now_utc.astimezone(target_tz)
-            if now_in_target_tz > scheduled_aware:
-                delay = now_in_target_tz - scheduled_aware
-                post.scheduled_on = post.scheduled_on + delay
-                post.save()
-
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            "Tiktok settings were saved!",
-            extra_tags="✅ Success!",
-        )
-        return redirect(f"/schedule/{isodate}/")
-    except Exception as err:
-        log.exception(err)
-        messages.add_message(
-            request,
-            messages.ERROR,
-            err,
-            extra_tags="🟥 Error!",
-        )
-        return redirect(f"/schedule/{isodate}/")
 
 
 def login_user(request):

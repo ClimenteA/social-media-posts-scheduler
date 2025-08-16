@@ -92,7 +92,7 @@ def post_scheduled_posts(buffer_seconds: int):
 
                 # TIKTOK
                 if post.post_on_tiktok:
-                    async_tasks.append(post_on_tiktok(post.account_id, post.id, text, media_path))
+                    async_tasks.append(post_on_tiktok(post, text, media_path))
 
             log.debug(f"Gathered async tasks {len(async_tasks)} to run.")
             return await asyncio.gather(*async_tasks)

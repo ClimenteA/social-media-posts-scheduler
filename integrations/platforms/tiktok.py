@@ -7,24 +7,13 @@ from datetime import timedelta
 from core.logger import log, send_notification
 from dataclasses import dataclass
 from integrations.models import IntegrationsModel, Platform
-from socialsched.models import PostModel, TikTokPostModel
+from socialsched.models import PostModel
 from asgiref.sync import sync_to_async
 from .common import (
     get_integration,
     ErrorAccessTokenNotProvided,
 )
 
-
-@sync_to_async
-def get_tiktok_settings(post_id: int, account_id: int):
-    try:
-        tiktok_settings = TikTokPostModel.objects.filter(
-            post_id=post_id, account_id=account_id
-        ).get()
-        return tiktok_settings
-    except Exception as err:
-        log.exception(err)
-        
 
 @dataclass
 class TikTokPoster:
@@ -160,7 +149,7 @@ class TikTokPoster:
             raise ValueError(f"Invalid video file or corrupted metadata: {e}")
 
     async def initialize_upload(
-        self, post_text: str, media_path: str, tiktok_settings: TikTokPostModel
+        self, post_text: str, media_path: str, tiktok_settings: PostModel
     ):
 
         video_size = os.path.getsize(media_path)
@@ -243,7 +232,7 @@ class TikTokPoster:
 
         return upload_status
 
-    async def make_post(self, account_id: int, post_text: str, media_path: str, tiktok_settings: TikTokPostModel):
+    async def make_post(self, account_id: int, post_text: str, media_path: str, tiktok_settings: PostModel):
 
         creator_info = self.get_creator_info()
         video_duration = self.get_video_duration(media_path)
@@ -309,10 +298,6 @@ def update_tiktok_link(post_id: int, post_url: str, err: str):
 
         new_post.save(skip_validation=True)
 
-        TikTokPostModel.objects.filter(
-            post_id=post_id, account_id=post.account_id
-        ).update(post_id=new_post.pk)
-
         return new_post.retries_tiktok
 
     else:
@@ -326,8 +311,7 @@ def update_tiktok_link(post_id: int, post_url: str, err: str):
 
 
 async def post_on_tiktok(
-    account_id: int,
-    post_id: int,
+    post: PostModel,
     post_text: str,
     media_path: str = None,
 ):
@@ -335,17 +319,13 @@ async def post_on_tiktok(
     err = None
     post_url = None
 
-    integration = await get_integration(account_id, Platform.TIKTOK.value)
+    integration = await get_integration(post.account_id, Platform.TIKTOK.value)
 
     if integration:
         try:
 
-            tiktok_settings = await get_tiktok_settings(post_id, account_id)
-            if tiktok_settings is None:
-                raise ValueError("Not posted because TikTok form was not completed.")
-
             poster = TikTokPoster(integration)
-            post_url = await poster.make_post(account_id, post_text, media_path, tiktok_settings)
+            post_url = await poster.make_post(post.account_id, post_text, media_path, post)
             
             log.success(f"TikTok post url: {integration.account_id} {post_url}")
         except Exception as e:
@@ -358,6 +338,6 @@ async def post_on_tiktok(
     else:
         err = "(Re-)Authorize TikTok on Integrations page"
 
-    retries_tiktok = await update_tiktok_link(post_id, post_url, str(err)[0:50])
+    retries_tiktok = await update_tiktok_link(post.post_id, post_url, str(err)[0:50])
     if retries_tiktok >= 20:
         await sync_to_async(integration.delete)()
