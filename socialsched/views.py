@@ -154,7 +154,7 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
     scheduled_on = datetime.strptime(isodate, "%Y-%m-%d").date()
     prev_date = scheduled_on - timedelta(days=1)
     next_date = scheduled_on + timedelta(days=1)
-    
+
     posts = PostModel.objects.filter(
         account_id=social_uid, scheduled_on__date=scheduled_on
     )
@@ -181,7 +181,7 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
         "today": today.date().isoformat(),
         "next_date": next_date,
         "integrations_info": integrations_info,
-        "tiktok_info": tiktok_info
+        "tiktok_info": tiktok_info,
     }
 
 
@@ -190,11 +190,18 @@ def schedule_form(request, isodate):
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
-    return render(
-        request,
-        "schedule.html",
-        context=get_schedule_form_context(social_uid, isodate, form=None),
-    )
+    context = get_schedule_form_context(social_uid, isodate, form=None)
+
+    if not context["integrations_info"]["has_at_least_one_valid_integration"]:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            "Please grant access to at least 1 platform before posting.",
+            extra_tags="💡 Action needed!",
+        )
+        return redirect("/integrations/")
+
+    return render(request, "schedule.html", context=context)
 
 
 @login_required
@@ -235,22 +242,6 @@ def schedule_save(request, isodate):
 
         post.save()
 
-        if post.post_on_tiktok:
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                "Please fill TikTok video settings.",
-                extra_tags="ℹ️ Fill tiktok form",
-            )
-            return redirect(f"/tiktok-settings/{isodate}/{post.pk}")
-        else:
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                "Post was saved!",
-                extra_tags="✅ Success!",
-            )
-            return redirect(f"/schedule/{isodate}/")
     except Exception as err:
         log.exception(err)
         messages.add_message(
@@ -312,75 +303,70 @@ def legal(request):
     return render(request, "legal.html")
 
 
-
 description = "These ideas are just to get you started - you'll build momentum after posting consistently for a month."
 
 articles = {
     "100-ways-to-never-run-out-of-content-ideas": {
         "title": "100 ways to never run out of content ideas 💡",
         "description": description,
-        "ideas_txt_filename": "how_to_never_run_out_of_content_ideas.txt"
+        "ideas_txt_filename": "how_to_never_run_out_of_content_ideas.txt",
     },
     "365-content-ideas-for-business-process-outsourcing-companies-bpo": {
         "title": "365 content ideas for Business Process Outsourcing (BPO) companies 🌏",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_bpo_companies.txt"
+        "ideas_txt_filename": "content_ideas_for_bpo_companies.txt",
     },
     "365-content-ideas-for-dentists": {
         "title": "365 content ideas for dentists 🦷",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_dentists.txt"
+        "ideas_txt_filename": "content_ideas_for_dentists.txt",
     },
     "365-content-ideas-for-veterinary-cabinets": {
         "title": "365 content ideas for veterinary cabinets 🐱",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_veterinary_cabinets.txt"
+        "ideas_txt_filename": "content_ideas_for_veterinary_cabinets.txt",
     },
     "365-content-ideas-for-startup-founders": {
         "title": "365 content ideas for startup founders 🤵",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_startup_founders.txt"
+        "ideas_txt_filename": "content_ideas_for_startup_founders.txt",
     },
     "365-content-ideas-for-car-repair-shops": {
         "title": "365 content ideas for car repair shops 🧑‍🔧",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_car_repair_shops.txt"
+        "ideas_txt_filename": "content_ideas_for_car_repair_shops.txt",
     },
     "365-content-ideas-for-influencers-in-the-beauty-and-fashion-industry": {
         "title": "365 content ideas for influencers in the beauty and fashion industry 💅",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_influencers_in_beauty_and_fashion_industry.txt"
+        "ideas_txt_filename": "content_ideas_for_influencers_in_beauty_and_fashion_industry.txt",
     },
     "365-content-ideas-for-influencers-in-the-health-and-wellness-industry": {
         "title": "365 content ideas for influencers in the health and wellness industry 🧘",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_influencers_in_health_and_wellness_industry.txt"
+        "ideas_txt_filename": "content_ideas_for_influencers_in_health_and_wellness_industry.txt",
     },
     "365-content-ideas-for-influencers-in-the-travel-and-hospitality-industry": {
         "title": "365 content ideas for influencers in the travel and hospitality industry ✈️",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_influencers_in_travel_and_hospitality_industry.txt"
+        "ideas_txt_filename": "content_ideas_for_influencers_in_travel_and_hospitality_industry.txt",
     },
     "365-content-ideas-for-real-estate-agents": {
         "title": "365 content ideas for real estate agents 🏡",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_real_estate_agents.txt"
+        "ideas_txt_filename": "content_ideas_for_real_estate_agents.txt",
     },
     "365-content-ideas-for-lawyers-and-legal-consultants": {
         "title": "365 content ideas for lawyers & legal consultants ⚖️",
         "description": description,
-        "ideas_txt_filename": "content_ideas_for_lawyers_and_legal_consultants.txt"
+        "ideas_txt_filename": "content_ideas_for_lawyers_and_legal_consultants.txt",
     },
-       
 }
 
 
 articles_list = []
 for slug, details in articles.items():
-    data = {
-        "blog_slug": slug,
-        "blog_title": details["title"]
-    } 
+    data = {"blog_slug": slug, "blog_title": details["title"]}
     articles_list.append(data)
 
 
@@ -392,8 +378,11 @@ def blog_article(request, blog_slug: str):
 
     if blog_slug not in articles:
         return redirect("/blog")
-    
-    txt_file = Path(__file__).parent / f"ideas_lists/{articles[blog_slug]["ideas_txt_filename"]}"
+
+    txt_file = (
+        Path(__file__).parent
+        / f"ideas_lists/{articles[blog_slug]["ideas_txt_filename"]}"
+    )
     with open(txt_file, "r") as f:
         ideas = []
         for line in f.readlines():
@@ -403,13 +392,17 @@ def blog_article(request, blog_slug: str):
 
             idea = {
                 "id": uuid.uuid5(uuid.NAMESPACE_DNS, blog_slug + line),
-                "text": line
+                "text": line,
             }
-            
+
             ideas.append(idea)
 
-    return render(request, "blog_article.html", context={
-        "title": articles[blog_slug]["title"], 
-        "description": articles[blog_slug]["description"], 
-        "ideas": ideas
-    })
+    return render(
+        request,
+        "blog_article.html",
+        context={
+            "title": articles[blog_slug]["title"],
+            "description": articles[blog_slug]["description"],
+            "ideas": ideas,
+        },
+    )
