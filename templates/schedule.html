@@ -28,163 +28,229 @@
             <i class="bi bi-arrow-right"></i>
         </a>
     </div>
-    
+
 </div>
 
 
-<p style="text-align: center; font-weight: bold; margin-top: 2rem;">{{ current_date }} <sup>{{ posts|length }} posts</sup></p>
+<p style="text-align: center; font-weight: bold; margin-top: 2rem;">
+    {{ current_date }} <sup>{{ posts|length }} posts</sup>
+</p>
 
 
 {% if show_form %}
 
-<article class="article-form mt-2 container">
+<div x-data="showPreview">
 
-    <form x-data="formData" x-on:submit="loading = true" action="{% url 'schedule_save' isodate=isodate %}"
-        method="POST" enctype="multipart/form-data">
+    <article class="article-form mt-2 container">
 
-        {% csrf_token %}
+        <form x-data="formData" x-on:submit="loading = true" action="{% url 'schedule_save' isodate=isodate %}"
+            method="POST" enctype="multipart/form-data">
 
-        <div style="display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 2rem;">
+            {% csrf_token %}
 
-            <div style="margin-right: 2rem;" x-data="timePicker()">
-                
-                <label style="display: none;" for="{{ post_form.scheduled_on.id_for_label }}">
-                    Schedule on:
-                    {{ post_form.scheduled_on }}
-                    {{ post_form.scheduled_on.errors }}
+            <div style="display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 2rem;">
+
+                <div style="margin-right: 2rem;" x-data="timePicker()">
+
+                    <label style="display: none;" for="{{ post_form.scheduled_on.id_for_label }}">
+                        Schedule on:
+                        {{ post_form.scheduled_on }}
+                        {{ post_form.scheduled_on.errors }}
+                    </label>
+
+                    <label style="max-width: fit-content;" for="id_scheduled_on_time">
+                        At time:
+                        <input type="time" id="id_scheduled_on_time" x-model="timeValue"
+                            @input="updateDatetime($event.target.value)">
+                    </label>
+                </div>
+
+                <label style="display: none;" for="{{ post_form.post_timezone.id_for_label }}">
+                    Timezone:
+                    {{ post_form.post_timezone }}
+                    {{ post_form.post_timezone.errors }}
                 </label>
 
-                <label style="max-width: fit-content;" for="id_scheduled_on_time">
-                    At time:
-                    <input type="time" id="id_scheduled_on_time" 
-                    x-model="timeValue" @input="updateDatetime($event.target.value)">
-                </label>
+                <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
+
+                    <label for="{{ post_form.post_on_facebook.id_for_label }}">
+                        <i class="bi bi-facebook"></i>
+                        {{ post_form.post_on_facebook }}
+                        {{ post_form.post_on_facebook.errors }}
+                    </label>
+
+                    <label for="{{ post_form.post_on_instagram.id_for_label }}">
+                        <i class="bi bi-instagram"></i>
+                        {{ post_form.post_on_instagram }}
+                        {{ post_form.post_on_instagram.errors }}
+                    </label>
+
+                    <label for="{{ post_form.post_on_tiktok.id_for_label }}">
+                        <i class="bi bi-tiktok"></i>
+                        {{ post_form.post_on_tiktok }}
+                        {{ post_form.post_on_tiktok.errors }}
+                    </label>
+
+                    <label for="{{ post_form.post_on_x.id_for_label }}">
+                        <i class="bi bi-twitter-x"></i>
+                        {{ post_form.post_on_x }}
+                        {{ post_form.post_on_x.errors }}
+                    </label>
+
+                    <label for="{{ post_form.post_on_linkedin.id_for_label }}">
+                        <i class="bi bi-linkedin"></i>
+                        {{ post_form.post_on_linkedin }}
+                        {{ post_form.post_on_linkedin.errors }}
+                    </label>
+
+                    <span>|</span>
+
+                    <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Process image">
+                        <i class="bi bi-camera-fill"></i>
+                        {{ post_form.process_image }}
+                        {{ post_form.process_image.errors }}
+                    </label>
+
+                    <label for="{{ post_form.process_video.id_for_label }}" data-tooltip="Process video">
+                        <i class="bi bi-camera-reels-fill"></i>
+                        {{ post_form.process_video }}
+                        {{ post_form.process_video.errors }}
+                    </label>
+
+                </div>
+
+
+                <div style="display: flex; flex-direction: column; font-size: 12px;">
+                    <small class="pico-color-slate-450">
+                        <i class="bi bi-camera-fill"></i>
+                        Process image - if checked we'll make sure image has the right size to be posted (1080x1350px).
+                        If only text is available it will create an image from that text with a blurred background
+                        image.
+                    </small>
+
+                    <small class="pico-color-slate-450">
+                        <i class="bi bi-camera-reels-fill"></i>
+                        Process video - We'll make sure video has the right size to be posted (ratio 9:16 with
+                        1080x1920px and 90 seconds length).
+                    </small>
+                </div>
+
+
             </div>
 
-            <label style="display: none;" for="{{ post_form.post_timezone.id_for_label }}">
-                Timezone:
-                {{ post_form.post_timezone }}
-                {{ post_form.post_timezone.errors }}
+            <div x-data="emojiPicker">
+
+                <label for="{{ post_form.description.id_for_label }}">
+                    Title/Post/Caption:
+                    <textarea x-model="postText" x-data x-grow @input="countLength"
+                        name="{{ post_form.description.name }}" cols="40" rows="3" maxlength="63207" required
+                        id="{{ post_form.description.id_for_label }}">{% if post_form.description.value %}{{ post_form.description.value }}{% endif %}</textarea>
+                    {{ post_form.description.errors }}
+                    <div style="display: flex; justify-content: end; margin-top: -18px;">
+                        <small class="pico-color-slate-450" x-text="postLength"></small>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <small x-text="xfreelenerr" class="pico-color-amber-300"></small>
+                        <small x-text="instagramlenerr" class="pico-color-amber-300"></small>
+                        <small x-text="linkedinlenerr" class="pico-color-amber-300"></small>
+                        <small x-text="xbluelenerr" class="pico-color-amber-300"></small>
+                        <small x-text="facebooklenerr" class="pico-color-amber-300"></small>
+                    </div>
+                </label>
+
+                <div x-data="{ isVisible: window.innerWidth >= 758 }"
+                    x-init="window.addEventListener('resize', () => isVisible = window.innerWidth >= 758)">
+                    <template x-if="isVisible">
+                        <div style="display: flex; justify-content: right; position: relative;">
+                            <div style="position: absolute; top: -10rem; right: 4rem;" id="emoji"
+                                x-show="showEmojiPicker" @click.away="showEmojiPicker = false">
+                            </div>
+
+                            <button class="outline" type="button" @click="togglePicker">
+                                <i class="bi bi-emoji-smile"></i>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+            </div>
+
+            <label for="{{ post_form.media_file.id_for_label }}">
+                <input type="file" name="media_file" id="{{ post_form.media_file.auto_id }}" @change="handleFileChange">
+                {{ post_form.media_file.errors }}
             </label>
 
-            <div style="display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
+            <button type="submit" x-bind:disabled="loading">
+                <i class="bi bi-save"></i>
+                <span>Schedule post</span>
+            </button>
 
-                <label for="{{ post_form.post_on_facebook.id_for_label }}">
-                    <i class="bi bi-facebook"></i>
-                    {{ post_form.post_on_facebook }}
-                    {{ post_form.post_on_facebook.errors }}
-                </label>
+            <small x-show="loading" aria-busy="true">Saving post...</small>
 
-                <label for="{{ post_form.post_on_instagram.id_for_label }}">
-                    <i class="bi bi-instagram"></i>
-                    {{ post_form.post_on_instagram }}
-                    {{ post_form.post_on_instagram.errors }}
-                </label>
+        </form>
 
-                <label for="{{ post_form.post_on_tiktok.id_for_label }}">
-                    <i class="bi bi-tiktok"></i>
-                    {{ post_form.post_on_tiktok }}
-                    {{ post_form.post_on_tiktok.errors }}
-                </label>
-
-                <label for="{{ post_form.post_on_x.id_for_label }}">
-                    <i class="bi bi-twitter-x"></i>
-                    {{ post_form.post_on_x }}
-                    {{ post_form.post_on_x.errors }}
-                </label>
-
-                <label for="{{ post_form.post_on_linkedin.id_for_label }}">
-                    <i class="bi bi-linkedin"></i>
-                    {{ post_form.post_on_linkedin }}
-                    {{ post_form.post_on_linkedin.errors }}
-                </label>
-
-                <span>|</span>
-
-                <label for="{{ post_form.process_image.id_for_label }}" data-tooltip="Process image">
-                    <i class="bi bi-camera-fill"></i>
-                    {{ post_form.process_image }}
-                    {{ post_form.process_image.errors }}
-                </label>
-
-                <label for="{{ post_form.process_video.id_for_label }}" data-tooltip="Process video">
-                    <i class="bi bi-camera-reels-fill"></i>
-                    {{ post_form.process_video }}
-                    {{ post_form.process_video.errors }}
-                </label>
-
-            </div>
+    </article>
 
 
-            <div style="display: flex; flex-direction: column; font-size: 12px;">
-                <small class="pico-color-slate-450">
-                    <i class="bi bi-camera-fill"></i>
-                    Process image - if checked we'll make sure image has the right size to be posted (1080x1350px).
-                    If only text is available it will create an image from that text with a blurred background image.
-                </small>
-                
-                <small class="pico-color-slate-450">
-                    <i class="bi bi-camera-reels-fill"></i>
-                    Process video - We'll make sure video has the right size to be posted (ratio 9:16 with 1080x1920px and 90 seconds length).
-                </small>
-            </div>
+    <div id="preview-post" x-show="mediaUrl || postText">
 
-            
+        <div class="mt-4"></div>
+        <div style="max-width: 900px; margin: 0 auto;">
+
+            <article>
+
+                <pre>PREVIEW</pre>
+
+                <div style="display: flex; justify-content: end;">
+                    <small class="pico-color-slate-450">{{ post.scheduled_on }}</small>
+                </div>
+
+                <p x-text="postText"></p>
+
+                <!-- IMAGE -->
+                <template x-if="mediaType === 'image'">
+                    <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                        <div x-show="!fullScreen">
+                            <img @click="fullScreen = true" :src="mediaUrl" alt="Media file"
+                                style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        </div>
+
+                        <dialog :open="fullScreen" @click="fullScreen = false">
+                            <img :src="mediaUrl" alt="Media file"
+                                style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                        </dialog>
+                    </div>
+                </template>
+
+                <!-- VIDEO -->
+                <template x-if="mediaType === 'video'">
+                    <div x-data="{fullScreen: false}" style="display: flex; justify-content: center;">
+                        <div x-show="!fullScreen">
+                            <video @click="fullScreen = true" controls
+                                style="max-width: 100%; height: 350px; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                                <source :src="mediaUrl" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+
+                        <dialog :open="fullScreen" @click="fullScreen = false">
+                            <video controls
+                                style="max-width: 100%; height: 100%; object-fit: contain; margin-bottom: 1rem; margin-top: 1rem; border-radius: 5px;">
+                                <source :src="mediaUrl" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </dialog>
+                    </div>
+                </template>
+
+            </article>
+
         </div>
 
-        <div x-data="emojiPicker">
+    </div>
 
-            <label for="{{ post_form.description.id_for_label }}">
-                Title/Post/Caption:
-                <textarea x-data x-grow @input="countLength" name="{{ post_form.description.name }}" cols="40" rows="3"
-                    maxlength="63207" required
-                    id="{{ post_form.description.id_for_label }}">{% if post_form.description.value %}{{ post_form.description.value }}{% endif %}</textarea>
-                {{ post_form.description.errors }}
-                <div style="display: flex; justify-content: end; margin-top: -18px;">
-                    <small class="pico-color-slate-450" x-text="postLength"></small>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                    <small x-text="xfreelenerr" class="pico-color-amber-300"></small>
-                    <small x-text="instagramlenerr" class="pico-color-amber-300"></small>
-                    <small x-text="linkedinlenerr" class="pico-color-amber-300"></small>
-                    <small x-text="xbluelenerr" class="pico-color-amber-300"></small>
-                    <small x-text="facebooklenerr" class="pico-color-amber-300"></small>
-                </div>
-            </label>
 
-            <div x-data="{ isVisible: window.innerWidth >= 758 }"
-                x-init="window.addEventListener('resize', () => isVisible = window.innerWidth >= 758)">
-               <template x-if="isVisible">
-                   <div style="display: flex; justify-content: right; position: relative;">
-                       <div style="position: absolute; top: -10rem; right: 4rem;" id="emoji" x-show="showEmojiPicker"
-                           @click.away="showEmojiPicker = false">
-                       </div>
-           
-                       <button class="outline" type="button" @click="togglePicker">
-                           <i class="bi bi-emoji-smile"></i>
-                       </button>
-                   </div>
-               </template>
-           </div>
-           
-        </div>
-
-        <label for="{{ post_form.media_file.id_for_label }}"">
-            {{ post_form.media_file }}
-            {{ post_form.media_file.errors }}
-        </label>
-
-        <button type="submit" x-bind:disabled="loading">
-            <i class="bi bi-save"></i>
-            <span>Schedule post</span>
-        </button>
-
-        <small x-show="loading" aria-busy="true">Saving post...</small>
-
-    </form>
-
-</article>
-
+</div>
 
 
 {% else %}
@@ -238,7 +304,7 @@
 
     function emojiPicker() {
         let activeInput = null;
-        
+
         return {
             getTheme() {
                 return localStorage.getItem('theme');
@@ -324,6 +390,29 @@
                     this.linkedinlenerr = "";
                 }
 
+            }
+        }
+    }
+
+    function showPreview() {
+        return {
+            postText: "",
+            mediaUrl: null,
+            mediaType: null,
+
+            handleFileChange(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                this.mediaUrl = URL.createObjectURL(file);
+
+                if (file.type.startsWith("image/")) {
+                    this.mediaType = "image";
+                } else if (file.type.startsWith("video/")) {
+                    this.mediaType = "video";
+                } else {
+                    this.mediaType = null;
+                }
             }
         }
     }
