@@ -51,17 +51,6 @@
         }
     }
 
-    .social-checkbox-label {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .social-checkbox-figure {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
 
     .avatar {
         display: inline-block;
@@ -97,6 +86,57 @@
         align-items: center;
     }
 
+    .social-checkbox-label {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .social-checkbox-figure {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    /* Hide the checkbox itself */
+    .social-checkbox-figure input[type="checkbox"] {
+        display: none;
+    }
+
+    /* Base styles for the visual container */
+    .social-checkbox-figure {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 2px solid var(--pico-color-slate-500);
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    /* Avatar default grayscale */
+    .social-checkbox-figure img.avatar {
+        filter: grayscale(100%);
+    }
+
+    /* Username default grey */
+    .social-checkbox-figure strong.font-size-s {
+        color: var(--pico-color-slate-500);
+    }
+
+    /* When the checkbox is checked, style the sibling .social-checkbox-figure */
+    .social-checkbox-label input[type="checkbox"]:checked+.social-checkbox-figure {
+        border-color: var(--pico-color-jade-200);
+    }
+
+    .social-checkbox-label input[type="checkbox"]:checked+.social-checkbox-figure img.avatar {
+        filter: none;
+    }
+
+    .social-checkbox-label input[type="checkbox"]:checked+.social-checkbox-figure strong.font-size-s {
+        color: inherit;
+    }
 </style>
 
 <div x-data="showPreview" class="container-fluid grid mt-2 two-panel" style="position: relative;">
@@ -120,29 +160,39 @@
                         <strong>Facebook</strong>
                     </div>
 
+                    <!-- Hidden checkbox first -->
+                    <input type="checkbox" hidden name="{{ post_form.post_on_facebook.name }}"
+                        id="{{ post_form.post_on_facebook.auto_id }}">
+
+                    <!-- Visual box -->
                     <div class="social-checkbox-figure">
                         <figure style="position: relative;">
                             <img src="{{ integrations_info.facebook_avatar_url }}"
                                 alt="{{ integrations_info.facebook_username }}" class="avatar">
                         </figure>
                         <strong class="font-size-s">{{ integrations_info.facebook_username }}</strong>
-                        <input type="checkbox" name="{{ post_form.post_on_facebook.name }}"
-                            id="{{ post_form.post_on_facebook.auto_id }}">
                     </div>
 
                     {{ post_form.post_on_facebook.errors }}
 
                 </label>
+
                 {% else %}
-                <div class="flex-col-items-center">
-                    <div class="font-size-xs">
-                        <i class="bi bi-facebook"></i>
-                        <strong>Facebook</strong>
-                    </div>
-                    <a href="{% url 'integrations' %}">
-                        <small class="font-size-xs">View Integrations</small>
-                    </a>
-                </div>
+                <a href="{% url 'facebook_login' %}" data-tooltip="Grant access">
+                    <label class="social-checkbox-label">
+                        <div class="font-size-xs">
+                            <i class="bi bi-facebook pico-color-slate-500"></i>
+                            <strong class="pico-color-slate-500">Facebook</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <i class="bi bi-person-fill-lock pico-color-slate-500"></i>
+                            </figure>
+                            <strong class="font-size-s">Username</strong>
+                        </div>
+                    </label>
+                </a>
                 {% endif %}
 
 
@@ -155,14 +205,17 @@
                         <strong>Instagram</strong>
                     </div>
 
+                    <!-- Hidden checkbox first -->
+                    <input type="checkbox" hidden name="{{ post_form.post_on_instagram.name }}"
+                        id="{{ post_form.post_on_instagram.auto_id }}">
+
+                    <!-- Visual box -->
                     <div class="social-checkbox-figure">
                         <figure style="position: relative;">
                             <img src="{{ integrations_info.instagram_avatar_url }}"
                                 alt="{{ integrations_info.instagram_username }}" class="avatar">
                         </figure>
                         <strong class="font-size-s">{{ integrations_info.instagram_username }}</strong>
-                        <input type="checkbox" name="{{ post_form.post_on_instagram.name }}"
-                            id="{{ post_form.post_on_instagram.auto_id }}">
                     </div>
 
                     {{ post_form.post_on_instagram.errors }}
@@ -170,19 +223,26 @@
                 </label>
 
                 {% else %}
-                <div class="flex-col-items-center">
-                    <div class="font-size-xs">
-                        <i class="bi bi-instagram"></i>
-                        <strong>Instagram</strong>
-                    </div>
-                    <a href="{% url 'integrations' %}">
-                        <small class="font-size-xs">View Integrations</small>
-                    </a>
-                </div>
+                <a href="{% url 'facebook_login' %}" data-tooltip="Grant access">
+                    <label class="social-checkbox-label">
+                        <div class="font-size-xs">
+                            <i class="bi bi-instagram pico-color-slate-500"></i>
+                            <strong class="pico-color-slate-500">Instagram</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <i class="bi bi-person-fill-lock pico-color-slate-500"></i>
+                            </figure>
+                            <strong class="font-size-s">Username</strong>
+                        </div>
+                    </label>
+                </a>
                 {% endif %}
 
 
                 {% if integrations_info.tiktok_ok %}
+
                 <label for="{{ post_form.post_on_tiktok.id_for_label }}" class="social-checkbox-label">
 
                     <div class="font-size-xs">
@@ -190,63 +250,84 @@
                         <strong>TikTok</strong>
                     </div>
 
+                    <!-- Hidden checkbox first -->
+                    <input type="checkbox" x-model="showTikTokForm" hidden name="{{ post_form.post_on_tiktok.name }}"
+                        id="{{ post_form.post_on_tiktok.auto_id }}">
+
+                    <!-- Visual box -->
                     <div class="social-checkbox-figure">
                         <figure style="position: relative;">
                             <img src="{{ integrations_info.tiktok_avatar_url }}"
                                 alt="{{ integrations_info.tiktok_username }}" class="avatar">
                         </figure>
                         <strong class="font-size-s">{{ integrations_info.tiktok_username }}</strong>
-                        <input type="checkbox" name="{{ post_form.post_on_tiktok.name }}"
-                            id="{{ post_form.post_on_tiktok.auto_id }}" x-model="showTikTokForm">
                     </div>
 
                     {{ post_form.post_on_tiktok.errors }}
 
                 </label>
+
                 {% else %}
-                <div class="flex-col-items-center">
-                    <div class="font-size-xs">
-                        <i class="bi bi-tiktok"></i>
-                        <strong>TikTok</strong>
-                    </div>
-                    <a href="{% url 'integrations' %}">
-                        <small class="font-size-xs">View Integrations</small>
-                    </a>
-                </div>
+                <a href="{% url 'tiktok_login' %}" data-tooltip="Grant access">
+                    <label class="social-checkbox-label">
+                        <div class="font-size-xs">
+                            <i class="bi bi-tiktok pico-color-slate-500"></i>
+                            <strong class="pico-color-slate-500">TikTok</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <i class="bi bi-person-fill-lock pico-color-slate-500"></i>
+                            </figure>
+                            <strong class="font-size-s">Username</strong>
+                        </div>
+                    </label>
+                </a>
                 {% endif %}
 
 
                 {% if integrations_info.x_ok %}
+
                 <label for="{{ post_form.post_on_x.id_for_label }}" class="social-checkbox-label">
 
                     <div class="font-size-xs">
                         <i class="bi bi-twitter-x"></i>
-                        <strong>X</strong>
+                        <strong></strong>
                     </div>
 
+                    <!-- Hidden checkbox first -->
+                    <input type="checkbox" hidden name="{{ post_form.post_on_x.name }}"
+                        id="{{ post_form.post_on_x.auto_id }}">
+
+                    <!-- Visual box -->
                     <div class="social-checkbox-figure">
                         <figure style="position: relative;">
                             <img src="{{ integrations_info.x_avatar_url }}" alt="{{ integrations_info.x_username }}"
                                 class="avatar">
                         </figure>
                         <strong class="font-size-s">{{ integrations_info.x_username }}</strong>
-                        <input type="checkbox" name="{{ post_form.post_on_x.name }}"
-                            id="{{ post_form.post_on_x.auto_id }}">
                     </div>
 
                     {{ post_form.post_on_x.errors }}
 
                 </label>
+
                 {% else %}
-                <div class="flex-col-items-center">
-                    <div class="font-size-xs">
-                        <i class="bi bi-twitter-x"></i>
-                        <strong></strong>
-                    </div>
-                    <a href="{% url 'integrations' %}">
-                        <small class="font-size-xs">View Integrations</small>
-                    </a>
-                </div>
+                <a href="{% url 'x_login' %}" data-tooltip="Grant access">
+                    <label class="social-checkbox-label">
+                        <div class="font-size-xs">
+                            <i class="bi bi-twitter-x pico-color-slate-500"></i>
+                            <strong></strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <i class="bi bi-person-fill-lock pico-color-slate-500"></i>
+                            </figure>
+                            <strong class="font-size-s">Username</strong>
+                        </div>
+                    </label>
+                </a>
                 {% endif %}
 
 
@@ -258,29 +339,38 @@
                         <strong>LinkedIn</strong>
                     </div>
 
+                    <!-- Hidden checkbox first -->
+                    <input type="checkbox" hidden name="{{ post_form.post_on_x.name }}"
+                        id="{{ post_form.post_on_x.auto_id }}">
+
+                    <!-- Visual box -->
                     <div class="social-checkbox-figure">
                         <figure style="position: relative;">
                             <img src="{{ integrations_info.linkedin_avatar_url }}"
                                 alt="{{ integrations_info.linkedin_username }}" class="avatar">
                         </figure>
                         <strong class="font-size-s">{{ integrations_info.linkedin_username }}</strong>
-                        <input type="checkbox" name="{{ post_form.post_on_linkedin.name }}"
-                            id="{{ post_form.post_on_linkedin.auto_id }}">
                     </div>
 
                     {{ post_form.post_on_linkedin.errors }}
 
                 </label>
                 {% else %}
-                <div class="flex-col-items-center">
-                    <div class="font-size-xs">
-                        <i class="bi bi-linkedin"></i>
-                        <strong>LinkedIn</strong>
-                    </div>
-                    <a href="{% url 'integrations' %}">
-                        <small class="font-size-xs">View Integrations</small>
-                    </a>
-                </div>
+                <a href="{% url 'linkedin_login' %}" data-tooltip="Grant access">
+                    <label class="social-checkbox-label">
+                        <div class="font-size-xs">
+                            <i class="bi bi-linkedin pico-color-slate-500"></i>
+                            <strong class="pico-color-slate-500">LinkedIn</strong>
+                        </div>
+
+                        <div class="social-checkbox-figure">
+                            <figure style="position: relative;">
+                                <i class="bi bi-person-fill-lock pico-color-slate-500"></i>
+                            </figure>
+                            <strong class="font-size-s">Username</strong>
+                        </div>
+                    </label>
+                </a>
                 {% endif %}
 
             </div>
@@ -389,17 +479,19 @@
             </div>
 
             <div x-show="showTikTokForm" id="tiktok-form" style="margin-bottom: 4rem;">
-                
+
                 <h4 style="text-align: center; text-decoration: underline;">TikTok Settings</h4>
 
                 {{ post_form.tiktok_nickname.as_hidden }}
                 {{ post_form.tiktok_max_video_post_duration_sec.as_hidden }}
 
-                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; margin-top: 2rem; margin-bottom: 2rem;">
+                <div
+                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 2rem; margin-top: 2rem; margin-bottom: 2rem;">
 
                     <label for="{{ post_form.tiktok_privacy_level_options.id_for_label }}">
                         Who can view this video?
-                        <select name="{{ post_form.tiktok_privacy_level_options.name }}" required="" id="{{ post_form.tiktok_privacy_level_options.auto_id }}">
+                        <select name="{{ post_form.tiktok_privacy_level_options.name }}" required=""
+                            id="{{ post_form.tiktok_privacy_level_options.auto_id }}">
                             <option value="" selected>---------</option>
                             <option value="FOLLOWER_OF_CREATOR">Followers of Creator</option>
                             <option value="PUBLIC_TO_EVERYONE" :selected="brandedContent">Public to Everyone</option>
@@ -466,7 +558,8 @@
 
                             <div>
                                 <label for="{{ post_form.tiktok_your_brand.id_for_label }}">
-                                    <input x-model="yourBrand" type="checkbox" name="{{ post_form.tiktok_your_brand.name }}"
+                                    <input x-model="yourBrand" type="checkbox"
+                                        name="{{ post_form.tiktok_your_brand.name }}"
                                         id="{{ post_form.tiktok_your_brand.id_for_label }}">
                                     {{ post_form.tiktok_your_brand.errors }}
                                     Your Brand
@@ -718,7 +811,7 @@
             disclose: false,
             brandedContent: false,
             yourBrand: false,
-            setDisclose: function() {
+            setDisclose: function () {
                 this.disclose = !this.disclose;
 
                 if (!this.disclose) {

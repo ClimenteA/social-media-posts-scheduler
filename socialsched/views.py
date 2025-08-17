@@ -196,15 +196,6 @@ def schedule_form(request, isodate):
 
     context = get_schedule_form_context(social_uid, isodate, form=None)
 
-    if not context["integrations_info"]["has_at_least_one_valid_integration"]:
-        messages.add_message(
-            request,
-            messages.ERROR,
-            "Please grant access to at least 1 platform before posting.",
-            extra_tags="💡 Action needed!",
-        )
-        return redirect("/integrations/")
-
     return render(request, "schedule.html", context=context)
 
 
