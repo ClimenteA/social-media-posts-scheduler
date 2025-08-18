@@ -53,7 +53,13 @@ def get_tiktok_creator_info(account_id: int):
 
     poster = TikTokPoster(integration)
 
-    return poster.get_creator_info()
+    result = poster.get_creator_info()
+
+    if result is None:
+        integration.delete()
+
+    return result
+
 
 
 def delete_tmp_media_files():

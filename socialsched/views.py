@@ -168,8 +168,11 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
     tiktok_info = {}
     if integrations_info["tiktok_ok"]:
         tiktok_info = get_tiktok_creator_info(social_uid)
-        initial_form_data["tiktok_nickname"] = tiktok_info["creator_nickname"]
-        initial_form_data["tiktok_max_video_post_duration_sec"] = tiktok_info["max_video_post_duration_sec"]
+        if tiktok_info is None:
+            integrations_info["tiktok_ok"] = False
+        else:
+            initial_form_data["tiktok_nickname"] = tiktok_info["creator_nickname"]
+            initial_form_data["tiktok_max_video_post_duration_sec"] = tiktok_info["max_video_post_duration_sec"]
 
     if form is None:
         form = PostForm(initial=initial_form_data)

@@ -58,28 +58,33 @@ class TikTokPoster:
         }
         """
 
-        creator_info_url = f"{self.base_url}/post/publish/creator_info/query/"
+        try:
+            creator_info_url = f"{self.base_url}/post/publish/creator_info/query/"
 
-        response = requests.post(creator_info_url, headers=self.headers)
-        log.debug(response.json())
-        response.raise_for_status()
-        data = response.json()
+            response = requests.post(creator_info_url, headers=self.headers)
+            log.debug(response.json())
+            response.raise_for_status()
+            data = response.json()
 
-        if data.get("error", {}).get("code") != "ok":
-            error_msg = data.get("error", {}).get("message", "Unknown error")
-            error_code = data.get("error", {}).get("code", "unknown")
+            if data.get("error", {}).get("code") != "ok":
+                error_msg = data.get("error", {}).get("message", "Unknown error")
+                error_code = data.get("error", {}).get("code", "unknown")
 
-            # Handle specific error cases
-            if error_code == "spam_risk_too_many_posts":
-                raise ValueError("Daily post limit reached. Please try again later.")
-            elif error_code == "spam_risk_user_banned_from_posting":
-                raise ValueError("User is banned from posting.")
-            elif error_code == "reached_active_user_cap":
-                raise ValueError("Daily quota for active users reached.")
-            else:
-                raise ValueError(f"Creator info error: {error_code} - {error_msg}")
+                # Handle specific error cases
+                if error_code == "spam_risk_too_many_posts":
+                    raise ValueError("Daily post limit reached. Please try again later.")
+                elif error_code == "spam_risk_user_banned_from_posting":
+                    raise ValueError("User is banned from posting.")
+                elif error_code == "reached_active_user_cap":
+                    raise ValueError("Daily quota for active users reached.")
+                else:
+                    raise ValueError(f"Creator info error: {error_code} - {error_msg}")
 
-        return data.get("data", {})
+            return data.get("data", {})
+        except Exception as err:
+            log.exception(err)
+            return 
+
 
     def calculate_chunks(self, video_size: int):
 
@@ -149,7 +154,7 @@ class TikTokPoster:
             raise ValueError(f"Invalid video file or corrupted metadata: {e}")
 
     async def initialize_upload(
-        self, post_text: str, media_path: str, tiktok_settings: PostModel
+        self, post_text: str, media_path: str, post: PostModel
     ):
 
         video_size = os.path.getsize(media_path)
@@ -162,13 +167,13 @@ class TikTokPoster:
                 "post_info": {
                     "video_cover_timestamp_ms": 1000,
                     "title": post_text[:2200],
-                    "privacy_level": tiktok_settings.privacy_level_options,
-                    "disable_duet": not tiktok_settings.allow_duet,
-                    "disable_comment": not tiktok_settings.allow_comment,
-                    "disable_stitch": not tiktok_settings.allow_stitch,
-                    "brand_content_toggle": tiktok_settings.branded_content,
-                    "brand_organic_toggle": tiktok_settings.your_brand,
-                    "is_aigc": tiktok_settings.ai_generated,
+                    "privacy_level": post.tiktok_privacy_level_options,
+                    "disable_duet": not post.tiktok_allow_duet,
+                    "disable_comment": not post.tiktok_allow_comment,
+                    "disable_stitch": not post.tiktok_allow_stitch,
+                    "brand_content_toggle": post.tiktok_branded_content,
+                    "brand_organic_toggle": post.tiktok_your_brand,
+                    "is_aigc": post.tiktok_ai_generated,
                 },
                 "source_info": {
                     "source": "FILE_UPLOAD",
@@ -232,7 +237,7 @@ class TikTokPoster:
 
         return upload_status
 
-    async def make_post(self, account_id: int, post_text: str, media_path: str, tiktok_settings: PostModel):
+    async def make_post(self, account_id: int, post_text: str, media_path: str, post: PostModel):
 
         creator_info = self.get_creator_info()
         video_duration = self.get_video_duration(media_path)
@@ -242,7 +247,7 @@ class TikTokPoster:
             )
 
         publish_id, upload_url, video_size = await self.initialize_upload(
-            post_text, media_path, tiktok_settings
+            post_text, media_path, post
         )
         self.upload_file(media_path, video_size, upload_url, publish_id, account_id)
 
@@ -338,6 +343,6 @@ async def post_on_tiktok(
     else:
         err = "(Re-)Authorize TikTok on Integrations page"
 
-    retries_tiktok = await update_tiktok_link(post.post_id, post_url, str(err)[0:50])
+    retries_tiktok = await update_tiktok_link(post.pk, post_url, str(err)[0:50])
     if retries_tiktok >= 20:
         await sync_to_async(integration.delete)()
