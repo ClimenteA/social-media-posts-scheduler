@@ -6,6 +6,26 @@
 
 {% block body %}
 
+
+<style>
+    .img-not-fullscreen {
+        width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+    .img-fullscreen {
+        width: 98vw;
+        height: auto;
+    }
+
+    @media (max-width: 600px) {
+        .img-not-fullscreen {
+            max-width: 100%;
+        }
+    }
+</style>
+
+
 <div style="display: flex; flex-direction: column; align-items: center; margin-top: 2rem;">
 
     <h1 style="text-align: center; font-family: monospace;"><i><span class="pico-color-yellow-200">Save time</span> with posting on social media </i></h1>
@@ -57,7 +77,6 @@
 </table>
 
 
-
 <div class="container" style="margin-top: 6rem;">
 
     <hgroup style="display: block; text-align: center; margin-bottom: 4rem;">
@@ -100,10 +119,8 @@
                 
                 </dialog>
             </div>
-
-
-
         </div>
+        
         <div style="display: flex; flex-direction: column; justify-content: center;">
             <strong>Calendar</strong>
             <p>
