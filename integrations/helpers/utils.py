@@ -1,29 +1,11 @@
 import os
 import uuid
-import base64
-import functools
 import requests
 from core.logger import log
 from pathlib import Path
+from django.core.cache import cache
 from integrations.models import IntegrationsModel, Platform
 from integrations.platforms.tiktok import TikTokPoster
-
-
-@functools.cache
-def image_url_to_base64(url: str) -> str | None:
-    # Adblockers think images hosted on social media platforms are ads
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-
-        content_type = response.headers.get("Content-Type", "")
-        if not content_type.startswith("image/"):
-            return None
-
-        encoded_image = base64.b64encode(response.content).decode("utf-8")
-        return f"data:{content_type};base64,{encoded_image}"
-    except requests.RequestException:
-        return url
 
 
 
@@ -44,6 +26,12 @@ def get_filepath_from_cloudflare_url(url: str):
 
 def get_tiktok_creator_info(account_id: int):
 
+    key = f"tiktok_creator_info_{account_id}"
+
+    result = cache.get(key)
+    if result:
+        return result
+
     integration = IntegrationsModel.objects.filter(
         account_id=account_id, platform=Platform.TIKTOK.value
     ).first()
@@ -56,8 +44,10 @@ def get_tiktok_creator_info(account_id: int):
     result = poster.get_creator_info()
 
     if result is None:
+        cache.delete(key)
         integration.delete()
-
+    
+    cache.set(key, value=result)
     return result
 
 
@@ -122,7 +112,7 @@ def get_integrations_context(social_uid: int):
 
     return {
         "linkedin_avatar_url": (
-            image_url_to_base64(linkedin_integration.avatar.url)
+            linkedin_integration.avatar.url
             if linkedin_integration
             else None
         ),
@@ -130,11 +120,11 @@ def get_integrations_context(social_uid: int):
             linkedin_integration.username if linkedin_integration else None
         ),
         "x_avatar_url": (
-            image_url_to_base64(x_integration.avatar.url) if x_integration else None
+            x_integration.avatar.url if x_integration else None
         ),
         "x_username": x_integration.username if x_integration else None,
         "tiktok_avatar_url": (
-            image_url_to_base64(tiktok_integration.avatar.url)
+            tiktok_integration.avatar.url
             if tiktok_integration
             else None
         ),
@@ -142,7 +132,7 @@ def get_integrations_context(social_uid: int):
             tiktok_integration.username if tiktok_integration else None
         ),
         "facebook_avatar_url": (
-            image_url_to_base64(facebook_integration.avatar.url)
+            facebook_integration.avatar.url
             if facebook_integration
             else None
         ),
@@ -150,7 +140,7 @@ def get_integrations_context(social_uid: int):
             facebook_integration.username if facebook_integration else None
         ),
         "instagram_avatar_url": (
-            image_url_to_base64(instagram_integration.avatar.url)
+            instagram_integration.avatar.url
             if instagram_integration
             else None
         ),

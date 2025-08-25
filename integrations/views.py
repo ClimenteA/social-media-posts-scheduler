@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from social_django.models import UserSocialAuth
 from .models import IntegrationsModel, Platform
 from .helpers.utils import get_integrations_context
+from django.core.cache import cache
 
 
 @login_required
@@ -417,6 +418,9 @@ def tiktok_callback(request):
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
+    key = f"tiktok_creator_info_{social_uid}"
+    cache.delete(key)
+
     code = request.GET.get("code")
     error = request.GET.get("error")
 
@@ -502,6 +506,9 @@ def tiktok_uninstall(request):
         "Deleted the tokens.",
         extra_tags="✅ Success!",
     )
+
+    key = f"tiktok_creator_info_{social_uid}"
+    cache.delete(key)
 
     return redirect("/integrations/")
 

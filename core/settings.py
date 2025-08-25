@@ -52,7 +52,9 @@ TIKTOK_UNINSTALL_URI = APP_URL + "/tiktok/uninstall/"
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS").split(",") if h.strip()]
 
-CSRF_TRUSTED_ORIGINS = [h.strip() for h in os.getenv("CSRF_TRUSTED_ORIGINS").split(",") if h.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    h.strip() for h in os.getenv("CSRF_TRUSTED_ORIGINS").split(",") if h.strip()
+]
 
 # INTERNAL_IPS = []
 
@@ -132,10 +134,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Media files
-CLOUDFLARE_R2_BUCKET=os.getenv("CLOUDFLARE_R2_BUCKET")
-CLOUDFLARE_R2_BUCKET_ENDPOINT=os.getenv("CLOUDFLARE_R2_BUCKET_ENDPOINT")
-CLOUDFLARE_R2_ACCESS_KEY=os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
-CLOUDFLARE_R2_SECRET_KEY=os.getenv("CLOUDFLARE_R2_SECRET_KEY")
+CLOUDFLARE_R2_BUCKET = os.getenv("CLOUDFLARE_R2_BUCKET")
+CLOUDFLARE_R2_BUCKET_ENDPOINT = os.getenv("CLOUDFLARE_R2_BUCKET_ENDPOINT")
+CLOUDFLARE_R2_ACCESS_KEY = os.getenv("CLOUDFLARE_R2_ACCESS_KEY")
+CLOUDFLARE_R2_SECRET_KEY = os.getenv("CLOUDFLARE_R2_SECRET_KEY")
 
 STORAGES = {
     "default": {
@@ -147,11 +149,9 @@ STORAGES = {
             "endpoint_url": CLOUDFLARE_R2_BUCKET_ENDPOINT,
             "access_key": CLOUDFLARE_R2_ACCESS_KEY,
             "secret_key": CLOUDFLARE_R2_SECRET_KEY,
-        }
+        },
     },
-     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
-    }
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
 
@@ -176,12 +176,20 @@ os.makedirs(DB_DIR, exist_ok=True)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DB_DIR / "db.sqlite",
-    },
-    "OPTIONS": {
-        "timeout": 20,
-        "transaction_mode": "IMMEDIATE",
-        "init_command": "PRAGMA synchronous=3; PRAGMA cache_size=2000;",
+        "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "init_command": (
+                "PRAGMA foreign_keys = ON;"
+                "PRAGMA journal_mode = WAL;"
+                "PRAGMA synchronous = NORMAL;"
+                "PRAGMA busy_timeout = 5000;"
+                "PRAGMA temp_store = MEMORY;"
+                "PRAGMA mmap_size = 134217728;"
+                "PRAGMA journal_size_limit = 67108864;"
+                "PRAGMA cache_size = -20000;"
+            ),
+            "transaction_mode": "IMMEDIATE",
+        },
     },
 }
 
@@ -193,6 +201,11 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
         "LOCATION": CACHE_DIR,
+        "OPTIONS": {
+            "MAX_ENTRIES": 10_000,
+            "CULL_FREQUENCY": 3,
+        },
+        "TIMEOUT": 3600,
     }
 }
 

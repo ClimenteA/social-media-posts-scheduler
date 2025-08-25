@@ -1,3 +1,4 @@
+import time
 import uuid
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -194,10 +195,15 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
 
 @login_required
 def schedule_form(request, isodate):
+
+    start = time.perf_counter()
+
     user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
     social_uid = user_social_auth.pk
 
     context = get_schedule_form_context(social_uid, isodate, form=None)
+
+    log.debug(f"Scheduler get in: {time.perf_counter() - start} seconds!")
 
     return render(request, "schedule.html", context=context)
 
