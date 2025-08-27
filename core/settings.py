@@ -176,7 +176,7 @@ os.makedirs(DB_DIR, exist_ok=True)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": DB_DIR / "db.sqlite3",
         "OPTIONS": {
             "init_command": (
                 "PRAGMA foreign_keys = ON;"
