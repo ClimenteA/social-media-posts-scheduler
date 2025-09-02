@@ -113,6 +113,25 @@ Shortcut make commands:
 - In Login Kit set the callback url: https://ngrok-or-prod-url.app/tiktok/callback/;
 - Add your tiktok account in Target Users for testing;
 
+App stores only the fields necessary for scheduling and publishing TikTok content on behalf of users.
+
+When a user connects their TikTok account, the app saves:
+- user_id / open_id (TikTok user identifier).
+- access_token and refresh_token (to enable API calls).
+- access_expire and refresh_expire (expiration timestamps).
+- username and avatar_url (for account display in dashboard).
+
+For each scheduled/published post, we save:
+- comment_disabled (boolean) - to respect user’s comment preferences.
+- duet_disabled (boolean) - to respect duet permissions.
+- stitch_disabled (boolean) - to respect stitch permissions.
+- privacy_level_options (list) - available visibility options for the user.
+- max_video_post_duration_sec (integer) - to validate allowed video length.
+- creator_username (string) - to identify the TikTok account linked.
+- creator_nickname (string) - display name for reference.
+- creator_avatar_url (string) - profile image for UI display.
+
+The app store or process any unnecessary personal data beyond what is required for authentication, account identification, and content scheduling.
 
 ## Screenshots
 
