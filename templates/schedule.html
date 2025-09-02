@@ -490,17 +490,19 @@
 
                     <label for="{{ post_form.tiktok_privacy_level_options.id_for_label }}">
                         Who can view this video?
-                        <select name="{{ post_form.tiktok_privacy_level_options.name }}" :required="showTikTokForm"
+                        <select name="{{ post_form.tiktok_privacy_level_options.name }}" :required="showTikTokForm" x-model="privacyLevel" 
+                            @change="if (privacyLevel == 'SELF_ONLY') brandedContent = false;"
                             id="{{ post_form.tiktok_privacy_level_options.auto_id }}">
                             <option value="" selected>---------</option>
                             <option value="FOLLOWER_OF_CREATOR">Followers of Creator</option>
-                            <option value="PUBLIC_TO_EVERYONE" :selected="brandedContent">Public to Everyone</option>
+                            <option value="PUBLIC_TO_EVERYONE">Public to Everyone</option>
                             <option value="MUTUAL_FOLLOW_FRIENDS">Mutual Follow Friends</option>
                             <option value="SELF_ONLY">Self Only</option>
                         </select>
                         {{ post_form.tiktok_privacy_level_options.errors }}
+                        <small x-show="showTikTokForm && privacyLevel == '';" class="pico-color-amber-300">Please choose who can view the video.</small>
                     </label>
-
+    
                     <div>
                         <legend>Generated with AI?</legend>
                         {{ post_form.tiktok_ai_generated }}
@@ -569,18 +571,22 @@
                             <div>
                                 <label for="{{ post_form.tiktok_branded_content.id_for_label }}">
                                     <input x-model="brandedContent" type="checkbox"
+                                        :disabled="privacyLevel == 'SELF_ONLY'"
                                         name="{{ post_form.tiktok_branded_content.name }}"
                                         id="{{ post_form.tiktok_branded_content.id_for_label }}">
                                     {{ post_form.tiktok_branded_content.errors }}
                                     Branded Content
                                 </label>
+
                                 <small class="pico-color-slate-600">
+                                    <span class="pico-color-amber-300" x-text="privacyLevel == 'SELF_ONLY' ? 'Branded content visibility cannot be set to private (switch Self Only to another option).': ''"></span>
                                     You are promoting another brand or third party.
                                     This video will be clasified as Branded Content.
                                 </small>
                             </div>
 
                         </fieldset>
+
 
                         <div class="grid">
 
@@ -593,7 +599,6 @@
                             </blockquote>
 
                         </div>
-
 
                     </div>
 
@@ -624,14 +629,18 @@
 
             </div>
 
-            <button type="submit" x-bind:disabled="loading || (showTikTokForm && disclose && !(yourBrand || brandedContent))">
+            <button type="submit" x-bind:disabled="loading || (showTikTokForm && disclose && !(yourBrand || brandedContent)) || (showTikTokForm && privacyLevel == '')">
                 <i class="bi bi-save"></i>
                 <span>Schedule post</span>
             </button>
+            
+            <div style="display: flex; flex-direction: column; flex-wrap: wrap;">
 
-            <small x-show="showTikTokForm && disclose && !(yourBrand || brandedContent)" class="pico-color-amber-300" style="text-align: center;">You need to indicate if your content promotes yourself, a third party, or both.</small>
-
-            <small x-show="loading" aria-busy="true">Saving post...</small>
+    
+                <small x-show="showTikTokForm && disclose && !(yourBrand || brandedContent)" class="pico-color-amber-300">You need to indicate if your content promotes yourself, a third party, or both.</small>
+    
+                <small x-show="loading" aria-busy="true">Saving post...</small>
+            </div>
 
         </form>
 
@@ -823,6 +832,7 @@
             disclose: false,
             brandedContent: false,
             yourBrand: false,
+            privacyLevel: "",
             setDisclose: function () {
                 this.disclose = !this.disclose;
 
