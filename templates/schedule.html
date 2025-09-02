@@ -538,7 +538,7 @@
                                 id="{{ post_form.tiktok_disclose_video_content.id_for_label }}">
                             Disclose video content
                         </label>
-                        <p class="mt-2">
+                        <p>
                             {{ post_form.tiktok_disclose_video_content.errors }}
                         </p>
                         <small class="pico-color-slate-600">
@@ -549,12 +549,8 @@
                     </div>
 
                     <div x-show="disclose">
-                        <blockquote>
-                            ℹ️ Your video will be labeled as "Promotional content".
-                            This cannot be changed once your video is published.
-                        </blockquote>
 
-                        <fieldset class="grid">
+                        <fieldset class="grid" style="margin-top: 2rem;">
 
                             <div>
                                 <label for="{{ post_form.tiktok_your_brand.id_for_label }}">
@@ -585,6 +581,20 @@
                             </div>
 
                         </fieldset>
+
+                        <div class="grid">
+
+                            <blockquote x-show="yourBrand && !brandedContent">
+                                ℹ️ Your photo/video will be labeled as 'Promotional content'
+                            </blockquote>
+    
+                            <blockquote x-show="brandedContent">
+                                ℹ️ Your photo/video will be labeled as 'Paid partnership'
+                            </blockquote>
+
+                        </div>
+
+
                     </div>
 
 
@@ -614,10 +624,12 @@
 
             </div>
 
-            <button type="submit" x-bind:disabled="loading">
+            <button type="submit" x-bind:disabled="loading || (showTikTokForm && disclose && !(yourBrand || brandedContent))">
                 <i class="bi bi-save"></i>
                 <span>Schedule post</span>
             </button>
+
+            <small x-show="showTikTokForm && disclose && !(yourBrand || brandedContent)" class="pico-color-amber-300" style="text-align: center;">You need to indicate if your content promotes yourself, a third party, or both.</small>
 
             <small x-show="loading" aria-busy="true">Saving post...</small>
 
