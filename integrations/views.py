@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from social_django.models import UserSocialAuth
 from .models import IntegrationsModel, Platform
 from .helpers.utils import get_integrations_context
 from django.core.cache import cache
@@ -18,8 +17,7 @@ from django.core.cache import cache
 
 @login_required
 def integrations_form(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     context = get_integrations_context(social_uid)
     
@@ -46,8 +44,7 @@ def linkedin_login(request):
 def linkedin_callback(request):
     # Refresh tokens are only for approved Marketing Developer Platform (MDP) partners
     # https://learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     code = request.GET.get("code")
     if not code:
@@ -111,8 +108,7 @@ def linkedin_callback(request):
 
 @login_required
 def linkedin_uninstall(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.LINKEDIN.value
@@ -145,8 +141,7 @@ def x_login(request):
 
 @login_required
 def x_callback(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     code = request.GET.get("code")
     if not code:
@@ -213,8 +208,7 @@ def x_callback(request):
 
 @login_required
 def x_uninstall(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.X_TWITTER.value
@@ -244,8 +238,7 @@ def facebook_login(request):
 
 @login_required
 def facebook_callback(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     code = request.GET.get("code")
     if not code:
@@ -379,8 +372,7 @@ def facebook_callback(request):
 
 @login_required
 def facebook_uninstall(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.FACEBOOK.value
@@ -415,8 +407,7 @@ def tiktok_login(request):
 
 @login_required
 def tiktok_callback(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     key = f"tiktok_creator_info_{social_uid}"
     cache.delete(key)
@@ -493,8 +484,7 @@ def tiktok_callback(request):
 
 @login_required
 def tiktok_uninstall(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     IntegrationsModel.objects.filter(
         account_id=social_uid, platform=Platform.TIKTOK.value

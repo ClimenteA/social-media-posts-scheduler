@@ -1,4 +1,3 @@
-import time
 import uuid
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -9,7 +8,6 @@ from django.contrib.auth import logout
 from django.utils import timezone
 from django.db.models import Min, Max
 from core.logger import log
-from social_django.models import UserSocialAuth
 from datetime import datetime, timedelta
 from integrations.helpers.utils import get_tiktok_creator_info, get_integrations_context
 from .models import PostModel
@@ -23,8 +21,7 @@ from .schedule_utils import (
 
 @login_required
 def calendar(request):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     today = timezone.now()
     selected_year = today.year
@@ -195,10 +192,7 @@ def get_schedule_form_context(social_uid: int, isodate: str, form: PostForm = No
 
 @login_required
 def schedule_form(request, isodate):
-
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
-
+    social_uid = request.social_user_id
     context = get_schedule_form_context(social_uid, isodate, form=None)
 
     return render(request, "schedule.html", context=context)
@@ -208,8 +202,7 @@ def schedule_form(request, isodate):
 def schedule_save(request, isodate):
     now_utc = timezone.now()
 
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     form = PostForm(request.POST, request.FILES)
 
@@ -267,8 +260,7 @@ def schedule_save(request, isodate):
 
 @login_required
 def schedule_delete(request, post_id):
-    user_social_auth = UserSocialAuth.objects.filter(user=request.user).first()
-    social_uid = user_social_auth.pk
+    social_uid = request.social_user_id
 
     post = get_object_or_404(PostModel, id=post_id, account_id=social_uid)
     isodate = post.scheduled_on.date().isoformat()
