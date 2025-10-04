@@ -491,16 +491,20 @@
                     <label for="{{ post_form.tiktok_privacy_level_options.id_for_label }}">
                         Who can view this video?
                         <select name="{{ post_form.tiktok_privacy_level_options.name }}" :required="showTikTokForm" x-model="privacyLevel" 
-                            @change="if (privacyLevel == 'SELF_ONLY') brandedContent = false;"
                             id="{{ post_form.tiktok_privacy_level_options.auto_id }}">
                             <option value="" selected>---------</option>
                             <option value="FOLLOWER_OF_CREATOR">Followers of Creator</option>
                             <option value="PUBLIC_TO_EVERYONE">Public to Everyone</option>
                             <option value="MUTUAL_FOLLOW_FRIENDS">Mutual Follow Friends</option>
-                            <option value="SELF_ONLY">Self Only</option>
+                            <option 
+                            :disabled="disclose" 
+                            :class="disclose ? 'pico-color-slate-750': ''"
+                            :title="disclose ? 'Branded content visibility cannot be set to private.': ''"
+                            value="SELF_ONLY">
+                                Self Only
+                            </option>
                         </select>
                         {{ post_form.tiktok_privacy_level_options.errors }}
-                        <small x-show="showTikTokForm && privacyLevel == '';" class="pico-color-amber-300">Please choose who can view the video.</small>
                     </label>
     
                     <div>
@@ -579,7 +583,6 @@
                                 </label>
 
                                 <small class="pico-color-slate-600">
-                                    <span class="pico-color-amber-300" x-text="privacyLevel == 'SELF_ONLY' ? 'Branded content visibility cannot be set to private (switch Self Only to another option).': ''"></span>
                                     You are promoting another brand or third party.
                                     This video will be clasified as Branded Content.
                                 </small>
@@ -840,7 +843,12 @@
                     this.brandedContent = false;
                     this.yourBrand = false;
                 }
-            },
+                
+                if (this.privacyLevel === 'SELF_ONLY' && this.disclose === true) {
+                    this.privacyLevel = "";
+                }
+
+            }
         }
     }
 

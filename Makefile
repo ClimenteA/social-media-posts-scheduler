@@ -23,7 +23,7 @@ purge-migration-dirs:
 
 purge-db:
 	make purge-migration-dirs
-	rm data/db.sqlite
+	rm data/db.sqlite3
 
 
 prep-prod:

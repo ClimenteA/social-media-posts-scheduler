@@ -49,13 +49,19 @@ class IntegrationsModel(models.Model):
         if self.refresh_token:
             self.refresh_token = aes_cbc.encrypt(self.refresh_token)
 
-        if self.avatar_url:
+        if self.avatar_url and not self.avatar:
             try:
                 response = requests.get(self.avatar_url)
                 response.raise_for_status()
 
                 content_type = response.headers.get("Content-Type", "")
-                extension = mimetypes.guess_extension(content_type.split(";")[0].strip()) or ".jpg"
+                extension = mimetypes.guess_extension(content_type.split(";")[0].strip())
+
+                for ext in [".png", ".jpg", ".jpeg"]:
+                    if ext in self.avatar_url:
+                        extension = ext
+                        break
+
                 filename = f"avatar{extension}"
 
                 self.avatar.save(filename, ContentFile(response.content), save=False)
